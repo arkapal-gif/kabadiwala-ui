@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages, Loader2 } from 'lucide-react';
+import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages, Loader2, Trophy, Leaf, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 // Global Language Toggler Helper
@@ -32,21 +32,21 @@ function LoginScreen() {
       <div className="absolute top-4 right-4 bg-green-600 rounded-md"><LanguageToggle /></div>
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-black text-green-700 mb-2">♻️ {t('appTitle')}</h1>
-          <p className="text-gray-500">{t('selectPortal')}</p>
+          <h1 className="text-3xl font-black text-green-700 mb-2">♻️ {t('appTitle', 'Kabadiwala Connect')}</h1>
+          <p className="text-gray-500">{t('selectPortal', 'Select your portal to continue')}</p>
         </div>
         <div className="space-y-4">
           <button onClick={() => navigate('/citizen')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all group">
             <div className="bg-green-100 p-3 rounded-lg text-green-600 group-hover:bg-green-200 transition-colors"><User className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('citizen')}</h3><p className="text-sm text-gray-500">{t('citizenDesc')}</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('citizen', 'Citizen')}</h3><p className="text-sm text-gray-500">{t('citizenDesc', 'Book a scrap pickup')}</p></div>
           </button>
           <button onClick={() => navigate('/kabadiwala')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all group">
             <div className="bg-orange-100 p-3 rounded-lg text-orange-600 group-hover:bg-orange-200 transition-colors"><Truck className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('kabadiwala')}</h3><p className="text-sm text-gray-500">{t('kabadiwalaDesc')}</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('kabadiwala', 'Kabadiwala')}</h3><p className="text-sm text-gray-500">{t('kabadiwalaDesc', 'Accept nearby requests')}</p></div>
           </button>
           <button onClick={() => navigate('/admin')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
             <div className="bg-blue-100 p-3 rounded-lg text-blue-600 group-hover:bg-blue-200 transition-colors"><ShieldCheck className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('admin')}</h3><p className="text-sm text-gray-500">{t('adminDesc')}</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('admin', 'Municipality Admin')}</h3><p className="text-sm text-gray-500">{t('adminDesc', 'Manage rates & track data')}</p></div>
           </button>
         </div>
       </div>
@@ -65,17 +65,22 @@ function CitizenPortal() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [pointsEarnedThisSession, setPointsEarnedThisSession] = useState(0);
   
-  // Real GPS Location State
-  const [locationName, setLocationName] = useState(t('location'));
+  const [locationName, setLocationName] = useState(t('location', 'Location'));
   const [isLocating, setIsLocating] = useState(false);
   const [locationFound, setLocationFound] = useState(false);
 
+  // Load user's saved points, default to a high score for the demo
+  const [myPoints, setMyPoints] = useState(() => {
+    return parseInt(localStorage.getItem('sih_green_points') || '1250');
+  });
+
   const categories = [
-    { id: 'paper', name: t('paper'), icon: Newspaper, pricePerKg: 15 },
-    { id: 'metal', name: t('metal'), icon: Wrench, pricePerKg: 30 },
-    { id: 'plastic', name: t('plastic'), icon: Recycle, pricePerKg: 12 },
-    { id: 'ewaste', name: t('ewaste'), icon: MonitorSmartphone, pricePerKg: 50 },
+    { id: 'paper', name: t('paper', 'Paper'), icon: Newspaper, pricePerKg: 15 },
+    { id: 'metal', name: t('metal', 'Metal'), icon: Wrench, pricePerKg: 30 },
+    { id: 'plastic', name: t('plastic', 'Plastic'), icon: Recycle, pricePerKg: 12 },
+    { id: 'ewaste', name: t('ewaste', 'E-Waste'), icon: MonitorSmartphone, pricePerKg: 50 },
   ];
 
   const toggleScrap = (id) => {
@@ -98,13 +103,12 @@ function CitizenPortal() {
   const co2Saved = (totalWeight * 1.5).toFixed(1); 
   const hasSelection = Object.keys(weights).length > 0;
 
-  // REAL GPS LOCATION FUNCTION
+  // Real GPS Location
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       setLocationName("Not Supported");
       return;
     }
-    
     setIsLocating(true);
     setLocationName("Locating...");
 
@@ -112,13 +116,9 @@ function CitizenPortal() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Free reverse geocoding API to turn coordinates into a real address
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
           const data = await res.json();
-          
-          // Extracts the local neighborhood, suburb, or city name
           const shortAddress = data.address.suburb || data.address.neighbourhood || data.address.city || data.address.town || `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
-          
           setLocationName(shortAddress);
           setLocationFound(true);
         } catch (error) {
@@ -141,13 +141,18 @@ function CitizenPortal() {
     setBookingId(generatedId);
 
     const scrapList = Object.keys(weights).map(id => categories.find(c => c.id === id)?.name).join(', ');
-    
-    // Save the real fetched address, or fallback to GPS Request
     const finalAddress = locationFound ? locationName : "Live GPS Request";
+
+    // Award 10 Green Points per kg of CO2 saved
+    const earned = Math.floor(parseFloat(co2Saved) * 10);
+    const newTotal = myPoints + earned;
+    setPointsEarnedThisSession(earned);
+    setMyPoints(newTotal);
+    localStorage.setItem('sih_green_points', newTotal.toString());
 
     const newBooking = {
       id: generatedId,
-      name: "New Web Booking",
+      name: "Arka Pal", // Synced to demo leaderboard
       address: finalAddress,
       distance: "0.2 km",
       scrap: scrapList,
@@ -161,20 +166,30 @@ function CitizenPortal() {
     setBookingSuccess(true);
   };
 
+  // Dynamic Leaderboard Sorting
+  const sortedLeaderboard = [
+    { name: "Arka Pal", points: myPoints, isUser: true },
+    { name: "Priyadarshini Mazumder", points: 1380, isUser: false },
+    { name: "Anup Kumar Majhi", points: 850, isUser: false },
+    { name: "Tathagata Das", points: 720, isUser: false },
+    { name: "Aniket Ghosh", points: 210, isUser: false },
+    { name: "Niloy Banik", points: 690, isUser: false }
+  ].sort((a, b) => b.points - a.points);
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       <nav className="bg-green-600 p-4 shadow-md flex justify-between items-center text-white">
-        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle')}</h1>
+        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle', 'Citizen Portal')}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
         </div>
       </nav>
       
       <main className="max-w-md mx-auto mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200 relative">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup')}</h2>
-          <p className="text-gray-500 text-sm mt-1 mb-6">{t('selectScrap')}</p>
+          <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup', 'Book a Scrap Pickup')}</h2>
+          <p className="text-gray-500 text-sm mt-1 mb-6">{t('selectScrap', 'Select scrap types to estimate value')}</p>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map((cat) => {
@@ -192,7 +207,7 @@ function CitizenPortal() {
 
           {hasSelection && (
             <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300">
-              <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight')}</h3>
+              <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight', 'Estimated Weight (kg)')}</h3>
               <div className="space-y-3 mb-4">
                 {Object.entries(weights).map(([id, weight]) => {
                   const cat = categories.find(c => c.id === id);
@@ -209,7 +224,7 @@ function CitizenPortal() {
                 })}
               </div>
               <div className="pt-3 border-t border-green-200 flex justify-between items-center">
-                <span className="font-bold text-gray-600 text-sm">{t('totalValue')}</span>
+                <span className="font-bold text-gray-600 text-sm">{t('totalValue', 'Total Value:')}</span>
                 <span className="text-2xl font-black text-green-700">₹{totalEstimatedValue}</span>
               </div>
             </div>
@@ -217,20 +232,14 @@ function CitizenPortal() {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              
-              {/* Functional Live GPS Button */}
-              <button 
-                onClick={handleGetLocation}
-                disabled={isLocating || locationFound}
-                className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors ${locationFound ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}
-              >
+              <button onClick={handleGetLocation} disabled={isLocating || locationFound} className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors ${locationFound ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>
                 {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : locationFound ? <CheckCircle2 className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                 <span className="truncate max-w-[100px]">{locationName}</span>
               </button>
               
               <label className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors cursor-pointer ${photoUploaded ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>
                 {photoUploaded ? <CheckCircle2 className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                {photoUploaded ? 'Photo Added' : t('addPhoto')}
+                {photoUploaded ? 'Photo Added' : t('addPhoto', 'Add Photo')}
                 <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { if (e.target.files && e.target.files.length > 0) setPhotoUploaded(true); }} />
               </label>
             </div>
@@ -240,11 +249,54 @@ function CitizenPortal() {
               disabled={!hasSelection} 
               className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              {hasSelection ? t('schedulePickup') : t('selectScrapBtn')}
+              {hasSelection ? t('schedulePickup', 'Schedule Pickup') : t('selectScrapBtn', 'Select Scrap to Continue')}
             </button>
           </div>
         </div>
       </main>
+
+      {/* Gamification Leaderboard */}
+      <div className="max-w-md mx-auto mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white flex justify-between items-center">
+          <div>
+            <h3 className="font-black flex items-center gap-2 text-lg"><Trophy className="w-5 h-5 text-yellow-300"/> Eco-Warriors</h3>
+            <p className="text-xs text-green-100 mt-1">Top recyclers near Kolkata</p>
+          </div>
+          <div className="text-right">
+            <span className="block text-2xl font-black text-yellow-300">{myPoints}</span>
+            <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">My Points</span>
+          </div>
+        </div>
+        <div className="p-2 bg-gray-50">
+          {sortedLeaderboard.map((user, index) => (
+            <div key={index} className={`flex items-center justify-between p-3 rounded-lg mb-1 transition-all ${user.isUser ? 'bg-green-100 border border-green-200 shadow-sm scale-[1.02]' : 'hover:bg-white border border-transparent'}`}>
+              <div className="flex items-center gap-3">
+                <span className={`font-black w-6 text-center ${index === 0 ? 'text-yellow-500 text-lg' : index === 1 ? 'text-gray-400 text-base' : index === 2 ? 'text-amber-600 text-base' : 'text-gray-400 text-sm'}`}>
+                  #{index + 1}
+                </span>
+                <span className={`font-bold text-sm ${user.isUser ? 'text-green-900' : 'text-gray-700'}`}>{user.name}</span>
+              </div>
+              <span className="font-black text-green-700 bg-white px-2 py-1 rounded-md text-xs shadow-sm flex items-center gap-1">
+                {user.points} <Leaf className="w-3 h-3"/>
+              </span>
+            </div>
+          ))}
+        </div>
+        
+        {/* NEW: Eco-Certificate Unlock Section */}
+        {myPoints >= 1000 && (
+          <div className="p-5 bg-gradient-to-b from-green-50 to-green-100 border-t border-green-200 text-center">
+            <p className="text-sm text-green-800 font-bold mb-3">🎉 You unlocked Gold Tier status!</p>
+            <button 
+              onClick={() => alert(`Generating Official SIH Eco-Certificate for ${sortedLeaderboard.find(u => u.isUser).name}...\n\n(This would trigger a PDF download in production)`)}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-black py-3 rounded-xl shadow-md hover:shadow-lg hover:from-yellow-500 hover:to-amber-600 transition-all"
+            >
+              <Download className="w-5 h-5" />
+              Download Eco-Certificate
+            </button>
+          </div>
+        )}
+      </div>
 
       {bookingSuccess && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -252,12 +304,15 @@ function CitizenPortal() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-black text-gray-800">{t('successTitle')}</h2>
-            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
+            <h2 className="text-2xl font-black text-gray-800">{t('successTitle', 'Pickup Scheduled!')}</h2>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc', 'Your local Kabadiwala is on the way.')} <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
             
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
-              <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2">
+              <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2 mb-1">
                 🌍 You saved {co2Saved} kg of CO2!
+              </span>
+              <span className="text-sm font-bold text-green-700 flex items-center justify-center gap-2">
+                🏆 +{pointsEarnedThisSession} Green Points
               </span>
             </div>
 
@@ -267,11 +322,11 @@ function CitizenPortal() {
                 setWeights({});
                 setPhotoUploaded(false);
                 setLocationFound(false);
-                setLocationName(t('location'));
+                setLocationName(t('location', 'Location'));
               }} 
               className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors"
             >
-              {t('backHome')}
+              {t('backHome', 'Back to Home')}
             </button>
           </div>
         </div>
@@ -293,7 +348,7 @@ function KabadiwalaPortal() {
     if (isOnline) {
       const liveData = JSON.parse(localStorage.getItem('sih_scrap_requests') || '[]');
       const mockData = [
-        { id: 9991, name: "Student Hostel Block", address: "Near Heritage Institute of Technology", distance: "0.5 km", scrap: "Paper, Plastic", estValue: "₹180", time: "12 mins ago" },
+        { id: 9991, name: "Hostel Block C", address: "Near Heritage Institute", distance: "0.5 km", scrap: "Paper, Plastic", estValue: "₹180", time: "12 mins ago" },
         { id: 9992, name: "Tech Park Offices", address: "Sector V, Salt Lake", distance: "4.2 km", scrap: "E-Waste, Metal", estValue: "₹650", time: "1 hour ago" },
       ];
       setFeedRequests([...liveData, ...mockData]);
@@ -332,8 +387,9 @@ function KabadiwalaPortal() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-md">{req.distance} away</span>
-                      <h4 className="font-bold text-gray-800 mt-2">{req.address}</h4>
-                      <p className="text-sm text-gray-500">{req.scrap} • {req.time}</p>
+                      <h4 className="font-bold text-gray-800 mt-2">{req.name}</h4>
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3"/> {req.address}</p>
+                      <p className="text-sm text-gray-500 mt-1">{req.scrap} • {req.time}</p>
                     </div>
                     <div className="text-right"><span className="block text-lg font-black text-green-700">{req.estValue}</span><span className="text-xs text-gray-400">Estimated</span></div>
                   </div>
