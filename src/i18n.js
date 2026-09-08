@@ -29,6 +29,27 @@ const resources = {
       successTitle: "Pickup Scheduled!",
       successDesc: "Your local Kabadiwala is on the way.",
       backHome: "Back to Home",
+      ecoWarriors: "Eco-Warriors",
+      topRecyclers: "Top recyclers near Kolkata",
+      myPoints: "My Points",
+      goldTier: "🎉 You unlocked Gold Tier status!",
+      downloadCert: "Download Eco-Certificate",
+      kabadiwalaTitle: "Kabadiwala Portal",
+      dutyStatus: "Duty Status",
+      onlineMsg: "Receiving pickup requests",
+      offlineMsg: "You are currently offline",
+      goOnlineMsg: "Go online to view nearby scrap pickups in your area.",
+      liveRequests: "Live Requests Near You",
+      noRequests: "No pending requests.",
+      away: "away",
+      estimated: "Estimated",
+      decline: "Decline",
+      accept: "Accept",
+      activeRoute: "Active Route",
+      itemsToCollect: "Items to Collect",
+      cashToPay: "Cash to Pay",
+      callCustomer: "Call Customer",
+      confirmCollection: "Confirm Collection"
     }
   },
   hi: {
@@ -58,6 +79,27 @@ const resources = {
       successTitle: "पिकअप शेड्यूल हो गया!",
       successDesc: "आपका स्थानीय कबाड़ीवाला रास्ते में है।",
       backHome: "होम पर वापस जाएं",
+      ecoWarriors: "पर्यावरण योद्धा",
+      topRecyclers: "कोलकाता के शीर्ष रिसाइकिलर्स",
+      myPoints: "मेरे अंक",
+      goldTier: "🎉 आपने गोल्ड टियर अनलॉक कर लिया है!",
+      downloadCert: "इको-प्रमाणपत्र डाउनलोड करें",
+      kabadiwalaTitle: "कबाड़ीवाला पोर्टल",
+      dutyStatus: "ड्यूटी स्थिति",
+      onlineMsg: "पिकअप अनुरोध प्राप्त हो रहे हैं",
+      offlineMsg: "आप अभी ऑफ़लाइन हैं",
+      goOnlineMsg: "अपने क्षेत्र में कबाड़ पिकअप देखने के लिए ऑनलाइन जाएं।",
+      liveRequests: "आपके आस-पास लाइव अनुरोध",
+      noRequests: "कोई लंबित अनुरोध नहीं।",
+      away: "दूर",
+      estimated: "अनुमानित",
+      decline: "अस्वीकार करें",
+      accept: "स्वीकार करें",
+      activeRoute: "सक्रिय मार्ग",
+      itemsToCollect: "एकत्र करने के लिए आइटम",
+      cashToPay: "भुगतान के लिए नकद",
+      callCustomer: "ग्राहक को कॉल करें",
+      confirmCollection: "संग्रहण की पुष्टि करें"
     }
   },
   bn: {
@@ -87,6 +129,27 @@ const resources = {
       successTitle: "পিকআপ নির্ধারিত হয়েছে!",
       successDesc: "আপনার স্থানীয় কাবাড়িওয়ালা পথে আছে।",
       backHome: "হোমে ফিরে যান",
+      ecoWarriors: "ইকো-ওয়ারিয়র্স",
+      topRecyclers: "কলকাতার সেরা রিসাইক্লার্স",
+      myPoints: "আমার পয়েন্ট",
+      goldTier: "🎉 আপনি গোল্ড টিয়ার আনলক করেছেন!",
+      downloadCert: "ইকো-সার্টিফিকেট ডাউনলোড করুন",
+      kabadiwalaTitle: "কাবাড়িওয়ালা পোর্টাল",
+      dutyStatus: "ডিউটি স্ট্যাটাস",
+      onlineMsg: "পিকআপের অনুরোধ গ্রহণ করা হচ্ছে",
+      offlineMsg: "আপনি বর্তমানে অফলাইনে আছেন",
+      goOnlineMsg: "আপনার এলাকায় কাছাকাছি স্ক্র্যাপ পিকআপ দেখতে অনলাইনে যান।",
+      liveRequests: "আপনার কাছাকাছি লাইভ অনুরোধ",
+      noRequests: "কোনো অপেক্ষমাণ অনুরোধ নেই।",
+      away: "দূরে",
+      estimated: "আনুমানিক",
+      decline: "বাতিল করুন",
+      accept: "গ্রহণ করুন",
+      activeRoute: "সক্রিয় রুট",
+      itemsToCollect: "সংগ্রহ করার আইটেম",
+      cashToPay: "প্রদানের জন্য নগদ",
+      callCustomer: "গ্রাহককে কল করুন",
+      confirmCollection: "সংগ্রহ নিশ্চিত করুন"
     }
   }
 };
@@ -95,7 +158,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: "en", // Default language
+    lng: "en", 
     fallbackLng: "en",
     interpolation: { escapeValue: false }
   });
