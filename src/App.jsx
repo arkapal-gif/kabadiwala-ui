@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages } from 'lucide-react';
@@ -62,6 +62,8 @@ function CitizenPortal() {
   const { t } = useTranslation();
   const [weights, setWeights] = useState({});
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingId, setBookingId] = useState("");
+  const [photoUploaded, setPhotoUploaded] = useState(false);
 
   const categories = [
     { id: 'paper', name: t('paper'), icon: Newspaper, pricePerKg: 15 },
@@ -89,6 +91,28 @@ function CitizenPortal() {
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
   const co2Saved = (totalWeight * 1.5).toFixed(1); 
   const hasSelection = Object.keys(weights).length > 0;
+
+  const handleSchedulePickup = () => {
+    const generatedId = Math.floor(Math.random() * 9000) + 1000;
+    setBookingId(generatedId);
+
+    const scrapList = Object.keys(weights).map(id => categories.find(c => c.id === id)?.name).join(', ');
+
+    const newBooking = {
+      id: generatedId,
+      name: "New Web Booking",
+      address: "Live GPS Request",
+      distance: "0.2 km",
+      scrap: scrapList,
+      estValue: `₹${totalEstimatedValue}`,
+      time: "Just now"
+    };
+
+    const existingRequests = JSON.parse(localStorage.getItem('sih_scrap_requests') || '[]');
+    localStorage.setItem('sih_scrap_requests', JSON.stringify([newBooking, ...existingRequests]));
+
+    setBookingSuccess(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
@@ -147,11 +171,25 @@ function CitizenPortal() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><MapPin className="w-4 h-4" /> {t('location')}</button>
-              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><Camera className="w-4 h-4" /> {t('addPhoto')}</button>
+              
+              {/* Native HTML5 Camera Integration */}
+              <label className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors cursor-pointer ${photoUploaded ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>
+                {photoUploaded ? <CheckCircle2 className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                {photoUploaded ? 'Photo Added' : t('addPhoto')}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) setPhotoUploaded(true);
+                  }} 
+                />
+              </label>
             </div>
             
             <button 
-              onClick={() => setBookingSuccess(true)}
+              onClick={handleSchedulePickup}
               disabled={!hasSelection} 
               className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
             >
@@ -168,7 +206,7 @@ function CitizenPortal() {
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
             <h2 className="text-2xl font-black text-gray-800">{t('successTitle')}</h2>
-            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{Math.floor(Math.random() * 9000) + 1000}</span></p>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
             
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
               <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2">
@@ -180,6 +218,7 @@ function CitizenPortal() {
               onClick={() => {
                 setBookingSuccess(false);
                 setWeights({});
+                setPhotoUploaded(false); // Resets the camera button
               }} 
               className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors"
             >
@@ -193,17 +232,28 @@ function CitizenPortal() {
 }
 
 // ==========================================
-// 3. KABADIWALA PORTAL (English Only For Now)
+// 3. KABADIWALA PORTAL
 // ==========================================
 function KabadiwalaPortal() {
   const navigate = useNavigate();
   const [isOnline, setIsOnline] = useState(false);
   const [activePickup, setActivePickup] = useState(null);
+  const [feedRequests, setFeedRequests] = useState([]);
 
-  const pendingRequests = [
-    { id: 1, name: "Student Hostel Block", address: "Near Heritage Institute of Technology", distance: "0.5 km", scrap: "Paper, Plastic", estValue: "₹180", time: "Just now" },
-    { id: 2, name: "Tech Park Offices", address: "Sector V, Salt Lake", distance: "4.2 km", scrap: "E-Waste, Metal", estValue: "₹650", time: "12 mins ago" },
-  ];
+  useEffect(() => {
+    if (isOnline) {
+      const liveData = JSON.parse(localStorage.getItem('sih_scrap_requests') || '[]');
+      const mockData = [
+        { id: 9991, name: "Student Hostel Block", address: "Near Heritage Institute of Technology", distance: "0.5 km", scrap: "Paper, Plastic", estValue: "₹180", time: "12 mins ago" },
+        { id: 9992, name: "Tech Park Offices", address: "Sector V, Salt Lake", distance: "4.2 km", scrap: "E-Waste, Metal", estValue: "₹650", time: "1 hour ago" },
+      ];
+      setFeedRequests([...liveData, ...mockData]);
+    }
+  }, [isOnline]);
+
+  const handleCompletePickup = () => {
+    setActivePickup(null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
@@ -216,33 +266,41 @@ function KabadiwalaPortal() {
           <div><h2 className="font-bold text-gray-800 text-lg">Duty Status</h2><p className="text-sm text-gray-500">{isOnline ? 'Receiving pickup requests' : 'You are currently offline'}</p></div>
           <button onClick={() => setIsOnline(!isOnline)} className={`p-4 rounded-full text-white shadow-md transition-all ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}><Power className="w-6 h-6" /></button>
         </div>
+        
         {!isOnline && !activePickup && (
           <div className="text-center py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
             <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-gray-500 font-medium">Go online to view nearby scrap pickups in your area.</h3>
           </div>
         )}
+
         {isOnline && !activePickup && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h3 className="font-bold text-gray-700 flex items-center gap-2">Live Requests Near You</h3>
-            {pendingRequests.map(req => (
-              <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-orange-100">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-md">{req.distance} away</span>
-                    <h4 className="font-bold text-gray-800 mt-2">{req.address}</h4>
-                    <p className="text-sm text-gray-500">{req.scrap} • {req.time}</p>
+            
+            {feedRequests.length === 0 ? (
+              <p className="text-center text-gray-500 py-4">No pending requests.</p>
+            ) : (
+              feedRequests.map(req => (
+                <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-orange-100">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-md">{req.distance} away</span>
+                      <h4 className="font-bold text-gray-800 mt-2">{req.address}</h4>
+                      <p className="text-sm text-gray-500">{req.scrap} • {req.time}</p>
+                    </div>
+                    <div className="text-right"><span className="block text-lg font-black text-green-700">{req.estValue}</span><span className="text-xs text-gray-400">Estimated</span></div>
                   </div>
-                  <div className="text-right"><span className="block text-lg font-black text-green-700">{req.estValue}</span><span className="text-xs text-gray-400">Estimated</span></div>
+                  <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <button className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium">Decline</button>
+                    <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm">Accept</button>
+                  </div>
                 </div>
-                <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-                  <button className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium">Decline</button>
-                  <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm">Accept</button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
+
         {activePickup && (
           <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="bg-gray-200 h-48 w-full flex items-center justify-center"><Navigation className="w-8 h-8 text-blue-600 animate-bounce" /></div>
@@ -256,7 +314,7 @@ function KabadiwalaPortal() {
               </div>
               <div className="space-y-3">
                 <button className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium flex justify-center gap-2"><Phone className="w-5 h-5"/> Call Customer</button>
-                <button onClick={() => setActivePickup(null)} className="w-full py-4 bg-green-600 text-white rounded-lg font-bold shadow-md flex justify-center gap-2"><CheckCircle className="w-6 h-6"/> Confirm Collection</button>
+                <button onClick={handleCompletePickup} className="w-full py-4 bg-green-600 text-white rounded-lg font-bold shadow-md flex justify-center gap-2"><CheckCircle className="w-6 h-6"/> Confirm Collection</button>
               </div>
             </div>
           </div>
@@ -267,7 +325,7 @@ function KabadiwalaPortal() {
 }
 
 // ==========================================
-// 4. ADMIN DASHBOARD (English Only For Now)
+// 4. ADMIN DASHBOARD
 // ==========================================
 function AdminDashboard() {
   const navigate = useNavigate();
