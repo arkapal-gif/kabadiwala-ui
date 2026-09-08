@@ -66,7 +66,21 @@ const resources = {
       itemsToCollect: "Items to Collect",
       cashToPay: "Cash to Pay",
       callCustomer: "Call Customer",
-      confirmCollection: "Confirm Collection"
+      confirmCollection: "Confirm Collection",
+      kabaLoginTitle: "Collector Login",
+      enterPhone: "Enter Phone Number",
+      enterPin: "Enter 4-Digit PIN",
+      loginBtn: "Login securely",
+      demoHint: "Demo: Enter any 10-digit number & PIN",
+      adminLoginTitle: "Admin Login",
+      enterAdminId: "Enter Admin ID",
+      enterPassword: "Enter Password",
+      enterMunicipality: "Select Municipality / Block",
+      demoAdminHint: "Demo: Select Region & Login",
+      liveMapTitle: "Live Area Map",
+      manageRates: "Manage Scrap Rates (₹/kg)",
+      updateRates: "Update Official Rates",
+      pricesSaved: "Scrap rates updated successfully for all citizens!"
     }
   },
   hi: {
@@ -133,7 +147,21 @@ const resources = {
       itemsToCollect: "एकत्र करने के लिए आइटम",
       cashToPay: "भुगतान के लिए नकद",
       callCustomer: "ग्राहक को कॉल करें",
-      confirmCollection: "संग्रहण की पुष्टि करें"
+      confirmCollection: "संग्रहण की पुष्टि करें",
+      kabaLoginTitle: "कलेक्टर लॉगिन",
+      enterPhone: "फ़ोन नंबर दर्ज करें",
+      enterPin: "4-अंकीय पिन दर्ज करें",
+      loginBtn: "सुरक्षित रूप से लॉगिन करें",
+      demoHint: "डेमो: कोई भी 10-अंकीय नंबर और पिन दर्ज करें",
+      adminLoginTitle: "व्यवस्थापक लॉगिन",
+      enterAdminId: "व्यवस्थापक आईडी दर्ज करें",
+      enterPassword: "पासवर्ड दर्ज करें",
+      enterMunicipality: "नगर पालिका / ब्लॉक चुनें",
+      demoAdminHint: "डेमो: क्षेत्र चुनें और लॉगिन करें",
+      liveMapTitle: "लाइव एरिया मैप",
+      manageRates: "कबाड़ दरें प्रबंधित करें (₹/किलो)",
+      updateRates: "आधिकारिक दरें अपडेट करें",
+      pricesSaved: "सभी नागरिकों के लिए कबाड़ की दरें सफलतापूर्वक अपडेट की गईं!"
     }
   },
   bn: {
@@ -200,7 +228,21 @@ const resources = {
       itemsToCollect: "সংগ্রহ করার আইটেম",
       cashToPay: "প্রদানের জন্য নগদ",
       callCustomer: "গ্রাহককে কল করুন",
-      confirmCollection: "সংগ্রহ নিশ্চিত করুন"
+      confirmCollection: "সংগ্রহ নিশ্চিত করুন",
+      kabaLoginTitle: "কালেক্টর লগইন",
+      enterPhone: "ফোন নম্বর লিখুন",
+      enterPin: "৪-সংখ্যার পিন লিখুন",
+      loginBtn: "নিরাপদে লগইন করুন",
+      demoHint: "ডেমো: যেকোনো ১০-সংখ্যার নম্বর এবং পিন লিখুন",
+      adminLoginTitle: "অ্যাডমিন লগইন",
+      enterAdminId: "অ্যাডমিন আইডি লিখুন",
+      enterPassword: "পাসওয়ার্ড লিখুন",
+      enterMunicipality: "পৌরসভা / ব্লক নির্বাচন করুন",
+      demoAdminHint: "ডেমো: অঞ্চল নির্বাচন করুন এবং লগইন করুন",
+      liveMapTitle: "লাইভ এরিয়া ম্যাপ",
+      manageRates: "স্ক্র্যাপ রেট পরিচালনা করুন (₹/কেজি)",
+      updateRates: "অফিসিয়াল রেট আপডেট করুন",
+      pricesSaved: "সমস্ত নাগরিকদের জন্য স্ক্র্যাপ রেট সফলভাবে আপডেট করা হয়েছে!"
     }
   }
 };
