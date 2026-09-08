@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages } from 'lucide-react';
+import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 // Global Language Toggler Helper
@@ -60,10 +60,16 @@ function LoginScreen() {
 function CitizenPortal() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
   const [weights, setWeights] = useState({});
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingId, setBookingId] = useState("");
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  
+  // Real GPS Location State
+  const [locationName, setLocationName] = useState(t('location'));
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationFound, setLocationFound] = useState(false);
 
   const categories = [
     { id: 'paper', name: t('paper'), icon: Newspaper, pricePerKg: 15 },
@@ -92,16 +98,57 @@ function CitizenPortal() {
   const co2Saved = (totalWeight * 1.5).toFixed(1); 
   const hasSelection = Object.keys(weights).length > 0;
 
+  // REAL GPS LOCATION FUNCTION
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationName("Not Supported");
+      return;
+    }
+    
+    setIsLocating(true);
+    setLocationName("Locating...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          // Free reverse geocoding API to turn coordinates into a real address
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          
+          // Extracts the local neighborhood, suburb, or city name
+          const shortAddress = data.address.suburb || data.address.neighbourhood || data.address.city || data.address.town || `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+          
+          setLocationName(shortAddress);
+          setLocationFound(true);
+        } catch (error) {
+          setLocationName("GPS Found");
+          setLocationFound(true);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        setLocationName("GPS Blocked");
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   const handleSchedulePickup = () => {
     const generatedId = Math.floor(Math.random() * 9000) + 1000;
     setBookingId(generatedId);
 
     const scrapList = Object.keys(weights).map(id => categories.find(c => c.id === id)?.name).join(', ');
+    
+    // Save the real fetched address, or fallback to GPS Request
+    const finalAddress = locationFound ? locationName : "Live GPS Request";
 
     const newBooking = {
       id: generatedId,
       name: "New Web Booking",
-      address: "Live GPS Request",
+      address: finalAddress,
       distance: "0.2 km",
       scrap: scrapList,
       estValue: `₹${totalEstimatedValue}`,
@@ -170,21 +217,21 @@ function CitizenPortal() {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><MapPin className="w-4 h-4" /> {t('location')}</button>
               
-              {/* Native HTML5 Camera Integration */}
+              {/* Functional Live GPS Button */}
+              <button 
+                onClick={handleGetLocation}
+                disabled={isLocating || locationFound}
+                className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors ${locationFound ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}
+              >
+                {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : locationFound ? <CheckCircle2 className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                <span className="truncate max-w-[100px]">{locationName}</span>
+              </button>
+              
               <label className={`flex items-center justify-center gap-2 p-3 rounded-lg border font-medium text-sm transition-colors cursor-pointer ${photoUploaded ? 'bg-green-100 border-green-300 text-green-700' : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}`}>
                 {photoUploaded ? <CheckCircle2 className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
                 {photoUploaded ? 'Photo Added' : t('addPhoto')}
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) setPhotoUploaded(true);
-                  }} 
-                />
+                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { if (e.target.files && e.target.files.length > 0) setPhotoUploaded(true); }} />
               </label>
             </div>
             
@@ -218,7 +265,9 @@ function CitizenPortal() {
               onClick={() => {
                 setBookingSuccess(false);
                 setWeights({});
-                setPhotoUploaded(false); // Resets the camera button
+                setPhotoUploaded(false);
+                setLocationFound(false);
+                setLocationName(t('location'));
               }} 
               className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors"
             >
@@ -251,9 +300,7 @@ function KabadiwalaPortal() {
     }
   }, [isOnline]);
 
-  const handleCompletePickup = () => {
-    setActivePickup(null);
-  };
+  const handleCompletePickup = () => setActivePickup(null);
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
@@ -277,7 +324,6 @@ function KabadiwalaPortal() {
         {isOnline && !activePickup && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h3 className="font-bold text-gray-700 flex items-center gap-2">Live Requests Near You</h3>
-            
             {feedRequests.length === 0 ? (
               <p className="text-center text-gray-500 py-4">No pending requests.</p>
             ) : (
