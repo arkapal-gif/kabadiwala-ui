@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut } from 'lucide-react';
+import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation } from 'lucide-react';
 
 // ==========================================
 // 1. LOGIN SCREEN
@@ -157,29 +157,132 @@ function CitizenPortal() {
 // ==========================================
 // 3. KABADIWALA PORTAL (Placeholder)
 // ==========================================
+// ==========================================
+// 3. KABADIWALA PORTAL
+// ==========================================
 function KabadiwalaPortal() {
   const navigate = useNavigate();
-  return (
-    <div className="min-h-screen bg-orange-50 p-6 flex flex-col items-center justify-center">
-      <Truck className="w-16 h-16 text-orange-500 mb-4" />
-      <h1 className="text-2xl font-bold text-gray-800">Kabadiwala Dashboard</h1>
-      <p className="text-gray-500 mb-6">Live tracking and request feed will go here.</p>
-      <button onClick={() => navigate('/')} className="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-700">Return to Login</button>
-    </div>
-  );
-}
+  const [isOnline, setIsOnline] = useState(false);
+  const [activePickup, setActivePickup] = useState(null);
 
-// ==========================================
-// 4. ADMIN DASHBOARD (Placeholder)
-// ==========================================
-function AdminDashboard() {
-  const navigate = useNavigate();
+  // Mock data tailored for a realistic local prototype demo
+  const pendingRequests = [
+    { id: 1, name: "Student Hostel Block", address: "Near Heritage Institute of Technology", distance: "0.5 km", scrap: "Paper, Plastic", estValue: "₹180", time: "Just now" },
+    { id: 2, name: "Tech Park Offices", address: "Sector V, Salt Lake", distance: "4.2 km", scrap: "E-Waste, Metal", estValue: "₹650", time: "12 mins ago" },
+  ];
+
   return (
-    <div className="min-h-screen bg-blue-50 p-6 flex flex-col items-center justify-center">
-      <ShieldCheck className="w-16 h-16 text-blue-500 mb-4" />
-      <h1 className="text-2xl font-bold text-gray-800">Municipality Admin</h1>
-      <p className="text-gray-500 mb-6">Charts, heatmaps, and pricing controls will go here.</p>
-      <button onClick={() => navigate('/')} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">Return to Login</button>
+    <div className="min-h-screen bg-gray-100 font-sans pb-10">
+      {/* Top Navbar */}
+      <nav className="bg-orange-600 p-4 shadow-md flex justify-between items-center text-white">
+        <h1 className="text-xl font-bold flex items-center gap-2">🚚 Kabadiwala Portal</h1>
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-800 text-sm font-semibold">
+          <LogOut className="w-4 h-4" /> Logout
+        </button>
+      </nav>
+
+      <main className="max-w-md mx-auto mt-6 p-4">
+        
+        {/* Status Toggle Header */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
+          <div>
+            <h2 className="font-bold text-gray-800 text-lg">Duty Status</h2>
+            <p className="text-sm text-gray-500">{isOnline ? 'Receiving pickup requests' : 'You are currently offline'}</p>
+          </div>
+          <button 
+            onClick={() => setIsOnline(!isOnline)} 
+            className={`p-4 rounded-full text-white shadow-md transition-all ${isOnline ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400 hover:bg-gray-500'}`}
+          >
+            <Power className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* View 1: Offline State */}
+        {!isOnline && !activePickup && (
+          <div className="text-center py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
+            <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-gray-500 font-medium">Go online to view nearby scrap pickups in your area.</h3>
+          </div>
+        )}
+
+        {/* View 2: Online & Waiting for Requests */}
+        {isOnline && !activePickup && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h3 className="font-bold text-gray-700 flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              Live Requests Near You
+            </h3>
+            
+            {pendingRequests.map(req => (
+              <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-orange-100">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-md">{req.distance} away</span>
+                    <h4 className="font-bold text-gray-800 mt-2">{req.address}</h4>
+                    <p className="text-sm text-gray-500">{req.scrap} • {req.time}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-lg font-black text-green-700">{req.estValue}</span>
+                    <span className="text-xs text-gray-400">Estimated</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                  <button className="flex-1 flex items-center justify-center gap-1 py-2 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">
+                    <XCircle className="w-5 h-5" /> Decline
+                  </button>
+                  <button onClick={() => setActivePickup(req)} className="flex-1 flex items-center justify-center gap-1 py-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg font-bold shadow-sm transition-colors">
+                    <CheckCircle className="w-5 h-5" /> Accept
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* View 3: Active Pickup Routing View */}
+        {activePickup && (
+          <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Dummy Map Area */}
+            <div className="bg-gray-200 h-48 w-full flex items-center justify-center relative">
+              <img src="https://www.transparenttextures.com/patterns/cubes.png" className="absolute inset-0 opacity-10" alt="map texture" />
+              <div className="bg-white p-3 rounded-full shadow-lg text-blue-600 animate-bounce">
+                <Navigation className="w-8 h-8" />
+              </div>
+            </div>
+            
+            <div className="p-5">
+              <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md mb-3 inline-block">Active Route</span>
+              <h3 className="text-xl font-bold text-gray-800">{activePickup.name}</h3>
+              <p className="text-gray-500 flex items-center gap-1 mt-1"><MapPin className="w-4 h-4"/> {activePickup.address}</p>
+              
+              <div className="grid grid-cols-2 gap-4 my-5 p-4 bg-orange-50 rounded-lg border border-orange-100">
+                <div>
+                  <span className="block text-xs text-gray-500 mb-1">Items to Collect</span>
+                  <span className="font-semibold text-gray-800 text-sm">{activePickup.scrap}</span>
+                </div>
+                <div>
+                  <span className="block text-xs text-gray-500 mb-1">Cash to Pay</span>
+                  <span className="font-bold text-green-700">{activePickup.estValue}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors font-medium">
+                  <Phone className="w-5 h-5" /> Call Customer
+                </button>
+                <button onClick={() => setActivePickup(null)} className="w-full p-4 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition-colors flex justify-center gap-2">
+                  <CheckCircle className="w-6 h-6" /> Confirm Collection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </main>
     </div>
   );
 }
