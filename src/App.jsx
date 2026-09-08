@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages, Loader2, Trophy, Leaf, Download, ArrowLeft, Image as ImageIcon } from 'lucide-react';
+
+// ADDED MISSING ICONS: Lock, Radio, Clock, LocateFixed 
+import { 
+  Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, 
+  User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, 
+  Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, 
+  CheckCircle2, Languages, Loader2, Trophy, Leaf, Download, ArrowLeft, 
+  Image as ImageIcon, Lock, Radio, Clock, LocateFixed 
+} from 'lucide-react';
+
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
-// BULLETPROOF MEMORY PARSERS 
+// BULLETPROOF MEMORY PARSERS
 const safeGetRequests = () => {
   try { const item = localStorage.getItem('sih_scrap_requests'); return item ? JSON.parse(item) : []; } 
   catch (e) { return []; }
@@ -16,7 +25,7 @@ const safeGetPrices = () => {
   catch (e) { return defaultPrices; }
 };
 
-// WEST BENGAL MUNICIPALITIES DATABASE (Alphabetically Sorted)
+// WEST BENGAL MUNICIPALITIES DATABASE
 const wbMunicipalities = [
   { id: 'asansol', name: 'Asansol Municipal Corporation', lat: 23.6739, lng: 86.9524 },
   { id: 'berhampore', name: 'Berhampore Municipality', lat: 24.0988, lng: 88.2679 },
@@ -107,7 +116,7 @@ function AdminLiveMap({ onUpdateStats }) {
       const bounds = [];
       const animatedFleet = [];
       
-      liveRequests.forEach((req, idx) => {
+      liveRequests.forEach((req) => {
         const cLat = req.coords ? req.coords[0] : baseLat + (Math.random() - 0.5) * 0.04;
         const cLng = req.coords ? req.coords[1] : baseLng - (Math.random() * 0.03); 
         bounds.push([cLat, cLng]);
@@ -177,8 +186,6 @@ function AdminLiveMap({ onUpdateStats }) {
 function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const collectorMarkerRef = useRef(null);
-  const routeLineRef = useRef(null);
   const { t } = useTranslation();
 
   const [eta, setEta] = useState(6);
@@ -205,9 +212,8 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
       if (!mapContainerRef.current || mapInstanceRef.current) return;
 
       const initMapWithCoords = (lat, lng) => {
-        // DEMO LOCK: Always force the Kabadiwala to spawn near the pickup location so the map works perfectly everywhere
-        const destPos = pickup.coords || [lat, lng]; 
-        const startPos = [destPos[0] - 0.005, destPos[1] - 0.006]; // Slight offset 
+        const destPos = pickup.coords || [lat + 0.0065, lng + 0.0055]; 
+        const startPos = [destPos[0] - 0.005, destPos[1] - 0.006]; 
         
         setCollectorPos(startPos);
 
@@ -234,8 +240,6 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
         map.fitBounds(route.getBounds(), { padding: [50, 50] });
 
         mapInstanceRef.current = map;
-        collectorMarkerRef.current = collectorMarker;
-        routeLineRef.current = route;
 
         let progress = 0;
         const movementInterval = setInterval(() => {
@@ -257,7 +261,6 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
         navigator.geolocation.getCurrentPosition(
           (pos) => { setIsGpsLocked(true); initMapWithCoords(pos.coords.latitude, pos.coords.longitude); },
           () => {
-             // Fallback directly to chosen municipality if GPS blocked
              const fbLat = parseFloat(localStorage.getItem('kaba_municipality_lat')) || 23.4033;
              const fbLng = parseFloat(localStorage.getItem('kaba_municipality_lng')) || 88.3659;
              initMapWithCoords(fbLat, fbLng);
@@ -393,7 +396,7 @@ function KabadiwalaLogin() {
             <label className="block text-sm font-semibold text-gray-700 mb-1">{t('enterMunicipality', 'Select Municipality')}</label>
             <div className="relative">
               <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
-              <select value={selectedMuniStr} onChange={(e) => setSelectedMuniStr(e.target.value)} className="w-full pl-10 pr-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 font-medium text-gray-800 text-sm">
+              <select value={selectedMuniStr} onChange={(e) => setSelectedMuniStr(e.target.value)} className="w-full pl-10 pr-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50 font-medium text-gray-800 text-sm appearance-none">
                 {wbMunicipalities.map((muni) => <option key={muni.id} value={JSON.stringify(muni)}>{muni.name}</option>)}
               </select>
             </div>
@@ -422,7 +425,7 @@ function KabadiwalaLogin() {
 }
 
 // ==========================================
-// 3. ADMIN LOGIN SCREEN 
+// 3. ADMIN LOGIN SCREEN
 // ==========================================
 function AdminLogin() {
   const navigate = useNavigate();
@@ -511,7 +514,7 @@ function CitizenPortal() {
   const [isLocating, setIsLocating] = useState(false);
   const [userCoords, setUserCoords] = useState(null); 
   
-  const [myPoints, setMyPoints] = useState(() => parseInt(localStorage.getItem('sih_green_points') || '1250'));
+  const [myPoints, setMyPoints] = useState(() => parseInt(safeGetRequests('sih_green_points') || '1250'));
   const [prices] = useState(() => safeGetPrices());
 
   const categories = [
@@ -618,7 +621,7 @@ function CitizenPortal() {
     if (groupItems.length === 0) return null;
     return (
       <div key={groupKey} className="mb-6">
-        <h3 className="text-left font-bold text-gray-700 text-sm mb-3 border-b border-gray-100 pb-2">{t(groupTitleKey, groupTitleKey)}</h3>
+        <h3 className="text-left font-bold text-gray-700 text-sm mb-3 border-b border-gray-100 pb-2">{t(groupTitleKey)}</h3>
         <div className="grid grid-cols-2 gap-4">
           {groupItems.map((cat) => {
             const Icon = cat.icon;
@@ -639,10 +642,10 @@ function CitizenPortal() {
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       <nav className="bg-green-600 p-4 shadow-md flex justify-between items-center text-white">
-        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle', 'Citizen Portal')}</h1>
+        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle')}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
         </div>
       </nav>
       
@@ -651,8 +654,8 @@ function CitizenPortal() {
         {/* STEP 1 */}
         <div className={`transition-all duration-300 ${!isTracking && step === 1 ? 'block opacity-100' : 'hidden opacity-0'}`}>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup', 'Book a Scrap Pickup')}</h2>
-            <p className="text-gray-500 text-sm mt-1 mb-6 font-semibold text-green-700">{t('selectScrap', 'Select Scrap')}</p>
+            <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup')}</h2>
+            <p className="text-gray-500 text-sm mt-1 mb-6 font-semibold text-green-700">{t('selectScrap')}</p>
             
             {renderCategoryGroup('biodegradable', 'cat_biodegradable')}
             {renderCategoryGroup('nonBiodegradable', 'cat_nonBiodegradable')}
@@ -660,7 +663,7 @@ function CitizenPortal() {
 
             {hasSelection && (
               <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300">
-                <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight', 'Est. Weight')}</h3>
+                <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight')}</h3>
                 <div className="space-y-3 mb-4">
                   {Object.entries(weights).map(([id, weight]) => {
                     const cat = categories.find(c => c.id === id);
@@ -677,7 +680,7 @@ function CitizenPortal() {
                   })}
                 </div>
                 <div className="pt-3 border-t border-green-200 flex justify-between items-center">
-                  <span className="font-bold text-gray-600 text-sm">{t('totalValue', 'Total Value')}</span>
+                  <span className="font-bold text-gray-600 text-sm">{t('totalValue')}</span>
                   <span className="text-2xl font-black text-green-700">₹{totalEstimatedValue}</span>
                 </div>
               </div>
@@ -688,7 +691,7 @@ function CitizenPortal() {
               disabled={!hasSelection} 
               className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              {hasSelection ? t('nextStep', 'Next Step') : t('selectScrapBtn', 'Select Scrap')}
+              {hasSelection ? t('nextStep') : t('selectScrapBtn')}
             </button>
           </div>
         </div>
@@ -697,21 +700,22 @@ function CitizenPortal() {
         <div className={`transition-all duration-300 ${!isTracking && step === 2 ? 'block opacity-100 animate-in slide-in-from-right-4' : 'hidden opacity-0'}`}>
           <div className="flex items-center mb-6">
             <button onClick={() => setStep(1)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 mr-3"><ArrowLeft className="w-5 h-5 text-gray-600" /></button>
-            <h2 className="text-xl font-bold text-gray-800">{t('personalDetails', 'Pickup Details')}</h2>
+            <h2 className="text-xl font-bold text-gray-800">{t('personalDetails')}</h2>
           </div>
           
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('fullName', 'Full Name')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('fullName')}</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" placeholder="E.g. Arka Pal" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('mobileNumber', 'Mobile')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('mobileNumber')}</label>
               <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" placeholder="+91" />
             </div>
 
+            {/* MUNICIPALITY SELECTOR */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('enterMunicipality', 'Select Municipality')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('enterMunicipality')}</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 <select value={selectedMuniStr} onChange={(e) => setSelectedMuniStr(e.target.value)} className="w-full pl-10 pr-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 appearance-none font-medium text-gray-800 text-sm">
@@ -724,15 +728,15 @@ function CitizenPortal() {
 
             <div>
               <div className="flex justify-between items-end mb-1">
-                <label className="block text-sm font-semibold text-gray-700">{t('exactAddress', 'Address')}</label>
+                <label className="block text-sm font-semibold text-gray-700">{t('exactAddress')}</label>
                 <button onClick={handleGetLocation} className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded hover:bg-green-100 flex items-center gap-1">
-                  {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />} {t('getGps', 'GPS')}
+                  {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />} {t('getGps')}
                 </button>
               </div>
               <textarea value={address} onChange={(e) => setAddress(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 text-sm min-h-[80px]" placeholder="Flat, Building, Street..."></textarea>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('addPhoto', 'Add Photo')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('addPhoto')}</label>
               {photoUploaded ? (
                 <label className="w-full flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-green-500 bg-green-50 text-green-700 font-bold cursor-pointer hover:bg-green-100 transition-colors shadow-sm">
                   <CheckCircle2 className="w-5 h-5" /> Photo Attached
@@ -742,12 +746,12 @@ function CitizenPortal() {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
                     <Camera className="w-6 h-6 mb-1 text-gray-500" />
-                    <span className="text-sm font-bold text-gray-700">{t('takePhoto', 'Camera')}</span>
+                    <span className="text-sm font-bold text-gray-700">{t('takePhoto')}</span>
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
                   </label>
                   <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
                     <ImageIcon className="w-6 h-6 mb-1 text-gray-500" />
-                    <span className="text-sm font-bold text-gray-700">{t('uploadFile', 'Gallery')}</span>
+                    <span className="text-sm font-bold text-gray-700">{t('uploadFile')}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                   </label>
                 </div>
@@ -759,7 +763,7 @@ function CitizenPortal() {
             disabled={!isFormComplete} 
             className={`w-full p-4 rounded-lg font-bold text-white transition-all ${isFormComplete ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
           >
-            {isFormComplete ? t('schedulePickup', 'Schedule') : t('fillDetailsBtn', 'Fill Details')}
+            {isFormComplete ? t('schedulePickup') : t('fillDetailsBtn')}
           </button>
         </div>
 
@@ -775,12 +779,12 @@ function CitizenPortal() {
         <div className="max-w-md mx-auto mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white flex justify-between items-center">
             <div>
-              <h3 className="font-black flex items-center gap-2 text-lg"><Trophy className="w-5 h-5 text-yellow-300"/> {t('ecoWarriors', 'Leaderboard')}</h3>
-              <p className="text-xs text-green-100 mt-1">{t('topRecyclers', 'Top Recyclers')}</p>
+              <h3 className="font-black flex items-center gap-2 text-lg"><Trophy className="w-5 h-5 text-yellow-300"/> {t('ecoWarriors')}</h3>
+              <p className="text-xs text-green-100 mt-1">{t('topRecyclers')}</p>
             </div>
             <div className="text-right">
               <span className="block text-2xl font-black text-yellow-300">{myPoints}</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">{t('myPoints', 'Points')}</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">{t('myPoints')}</span>
             </div>
           </div>
           <div className="p-2 bg-gray-50">
@@ -796,9 +800,9 @@ function CitizenPortal() {
           </div>
           {myPoints >= 1000 && (
             <div className="p-5 bg-gradient-to-b from-green-50 to-green-100 border-t border-green-200 text-center">
-              <p className="text-sm text-green-800 font-bold mb-3">{t('goldTier', 'Gold Tier!')}</p>
+              <p className="text-sm text-green-800 font-bold mb-3">{t('goldTier')}</p>
               <button onClick={() => alert(`Generating Official SIH Eco-Certificate...`)} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-black py-3 rounded-xl shadow-md hover:shadow-lg hover:from-yellow-500 hover:to-amber-600 transition-all">
-                <Download className="w-5 h-5" /> {t('downloadCert', 'Download')}
+                <Download className="w-5 h-5" /> {t('downloadCert')}
               </button>
             </div>
           )}
@@ -810,8 +814,8 @@ function CitizenPortal() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"><CheckCircle2 className="w-10 h-10 text-green-600" /></div>
-            <h2 className="text-2xl font-black text-gray-800">{t('successTitle', 'Success!')}</h2>
-            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc', 'Collector assigned.')} <br/>ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
+            <h2 className="text-2xl font-black text-gray-800">{t('successTitle')}</h2>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
             
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
               <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2 mb-1">🌍 You saved {co2Saved} kg of CO2!</span>
@@ -822,7 +826,7 @@ function CitizenPortal() {
               <button onClick={() => { setBookingSuccess(false); setIsTracking(true); }} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors shadow-md flex items-center justify-center gap-2">
                 <Navigation className="w-5 h-5" /> Track Kabadiwala
               </button>
-              <button onClick={resetWizard} className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors">{t('backHome', 'Back to Home')}</button>
+              <button onClick={resetWizard} className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors">{t('backHome')}</button>
             </div>
           </div>
         </div>
@@ -875,15 +879,15 @@ function KabadiwalaPortal() {
         <h1 className="text-xl font-bold flex items-center gap-2 truncate pr-2">🚚 {muniName}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
         </div>
       </nav>
       
       <main className="max-w-md mx-auto mt-6 p-4 relative">
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
           <div>
-            <h2 className="font-bold text-gray-800 text-lg">{t('dutyStatus', 'Status')}</h2>
-            <p className="text-sm text-gray-500">{isOnline ? t('onlineMsg', 'Online') : t('offlineMsg', 'Offline')}</p>
+            <h2 className="font-bold text-gray-800 text-lg">{t('dutyStatus')}</h2>
+            <p className="text-sm text-gray-500">{isOnline ? t('onlineMsg') : t('offlineMsg')}</p>
           </div>
           <button onClick={() => setIsOnline(!isOnline)} className={`p-4 rounded-full text-white shadow-md transition-all ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}><Power className="w-6 h-6" /></button>
         </div>
@@ -891,15 +895,15 @@ function KabadiwalaPortal() {
         {!isOnline && !activePickup && (
           <div className="text-center py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
             <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-gray-500 font-medium">{t('goOnlineMsg', 'Go online')}</h3>
+            <h3 className="text-gray-500 font-medium">{t('goOnlineMsg')}</h3>
           </div>
         )}
 
         {isOnline && !activePickup && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h3 className="font-bold text-gray-700 flex items-center gap-2">{t('liveRequests', 'Live Feed')}</h3>
+            <h3 className="font-bold text-gray-700 flex items-center gap-2">{t('liveRequests')}</h3>
             {feedRequests.length === 0 ? (
-              <p className="text-center text-gray-500 py-4">{t('noRequests', 'Empty')}</p>
+              <p className="text-center text-gray-500 py-4">{t('noRequests')}</p>
             ) : (
               feedRequests.map(req => (
                 <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-orange-100">
@@ -921,12 +925,12 @@ function KabadiwalaPortal() {
                     </div>
                     <div className="text-right">
                       <span className="block text-lg font-black text-green-700">{req.estValue}</span>
-                      <span className="text-xs text-gray-400">{t('estimated', 'Est.')}</span>
+                      <span className="text-xs text-gray-400">{t('estimated')}</span>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-                    <button onClick={() => handleDecline(req.id)} className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition-colors">{t('decline', 'Decline')}</button>
-                    <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm hover:bg-orange-600 transition-colors">{t('accept', 'Accept')}</button>
+                    <button onClick={() => handleDecline(req.id)} className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition-colors">{t('decline')}</button>
+                    <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm hover:bg-orange-600 transition-colors">{t('accept')}</button>
                   </div>
                 </div>
               ))
@@ -981,7 +985,7 @@ function AdminDashboard() {
         <h1 className="text-xl font-bold flex items-center gap-2 truncate pr-2">📊 {municipalityName}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-blue-900 px-3 py-1.5 rounded-md hover:bg-blue-950 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-blue-900 px-3 py-1.5 rounded-md hover:bg-blue-950 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
         </div>
       </nav>
       <main className="max-w-6xl mx-auto mt-8 p-4">
