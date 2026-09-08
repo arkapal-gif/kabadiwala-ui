@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee } from 'lucide-react';
+import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 // ==========================================
@@ -35,11 +35,12 @@ function LoginScreen() {
 }
 
 // ==========================================
-// 2. CITIZEN PORTAL
+// 2. UPGRADED CITIZEN PORTAL
 // ==========================================
 function CitizenPortal() {
   const navigate = useNavigate();
   const [weights, setWeights] = useState({});
+  const [bookingSuccess, setBookingSuccess] = useState(false); // Controls the success popup
 
   const categories = [
     { id: 'paper', name: 'Paper', icon: Newspaper, pricePerKg: 15 },
@@ -64,6 +65,9 @@ function CitizenPortal() {
     return total + (cat ? cat.pricePerKg * weight : 0);
   }, 0);
 
+  // Gamification: Calculate total weight to display CO2 saved
+  const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+  const co2Saved = (totalWeight * 1.5).toFixed(1); 
   const hasSelection = Object.keys(weights).length > 0;
 
   return (
@@ -72,16 +76,18 @@ function CitizenPortal() {
         <h1 className="text-xl font-bold flex items-center gap-2">♻️ Citizen Portal</h1>
         <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> Logout</button>
       </nav>
-      <main className="max-w-md mx-auto mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+      
+      <main className="max-w-md mx-auto mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200 relative">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800">Book a Scrap Pickup</h2>
           <p className="text-gray-500 text-sm mt-1 mb-6">Select scrap types to estimate value</p>
+          
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isSelected = !!weights[cat.id];
               return (
-                <button key={cat.id} onClick={() => toggleScrap(cat.id)} className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${isSelected ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-600 hover:border-green-200'}`}>
+                <button key={cat.id} onClick={() => toggleScrap(cat.id)} className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${isSelected ? 'border-green-500 bg-green-50 text-green-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-green-200'}`}>
                   <Icon className="w-8 h-8 mb-2" />
                   <span className="font-semibold text-sm">{cat.name}</span>
                   <span className="text-xs mt-1 opacity-70">₹{cat.pricePerKg}/kg</span>
@@ -89,8 +95,9 @@ function CitizenPortal() {
               );
             })}
           </div>
+
           {hasSelection && (
-            <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200">
+            <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300">
               <h3 className="font-bold text-green-800 mb-3 text-left text-sm">Estimated Weight (kg)</h3>
               <div className="space-y-3 mb-4">
                 {Object.entries(weights).map(([id, weight]) => {
@@ -113,20 +120,60 @@ function CitizenPortal() {
               </div>
             </div>
           )}
+
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium"><MapPin className="w-5 h-5" /> Use Current Location</button>
-            <button disabled={!hasSelection} className={`w-full p-4 rounded-lg font-bold text-white ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md' : 'bg-gray-400 cursor-not-allowed'}`}>
+            <div className="grid grid-cols-2 gap-3">
+              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><MapPin className="w-4 h-4" /> Location</button>
+              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><Camera className="w-4 h-4" /> Add Photo</button>
+            </div>
+            
+            <button 
+              onClick={() => setBookingSuccess(true)}
+              disabled={!hasSelection} 
+              className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
+            >
               {hasSelection ? 'Schedule Pickup' : 'Select Scrap to Continue'}
             </button>
           </div>
         </div>
       </main>
+
+      {/* Success Modal Overlay */}
+      {bookingSuccess && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300 shadow-2xl">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-black text-gray-800">Pickup Scheduled!</h2>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">Your local Kabadiwala is on the way. <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{Math.floor(Math.random() * 9000) + 1000}</span></p>
+            
+            {/* Gamification Badge */}
+            <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
+              <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2">
+                🌍 You just saved {co2Saved} kg of CO2!
+              </span>
+              <span className="text-xs text-blue-600 mt-1 block">Thank you for recycling.</span>
+            </div>
+
+            <button 
+              onClick={() => {
+                setBookingSuccess(false);
+                setWeights({}); // Reset the form
+              }} 
+              className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ==========================================
-// 3. KABADIWALA PORTAL
+// 3. KABADIWALA PORTAL (Unchanged)
 // ==========================================
 function KabadiwalaPortal() {
   const navigate = useNavigate();
@@ -200,11 +247,10 @@ function KabadiwalaPortal() {
 }
 
 // ==========================================
-// 4. ADMIN DASHBOARD
+// 4. ADMIN DASHBOARD (Unchanged)
 // ==========================================
 function AdminDashboard() {
   const navigate = useNavigate();
-  
   const weeklyCollectionData = [
     { day: 'Mon', Paper: 120, Plastic: 80, Metal: 40, EWaste: 20 },
     { day: 'Tue', Paper: 132, Plastic: 90, Metal: 45, EWaste: 35 },
@@ -221,10 +267,7 @@ function AdminDashboard() {
         <h1 className="text-xl font-bold flex items-center gap-2">📊 Municipality Command Center</h1>
         <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-blue-900 px-3 py-1.5 rounded-md hover:bg-blue-950 text-sm font-semibold"><LogOut className="w-4 h-4" /> Logout</button>
       </nav>
-
       <main className="max-w-6xl mx-auto mt-8 p-4">
-        
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex justify-between items-start"><p className="text-gray-500 font-medium">Total Scrap (Today)</p><TrendingUp className="w-5 h-5 text-green-500"/></div>
@@ -243,11 +286,7 @@ function AdminDashboard() {
             <h3 className="text-3xl font-black text-gray-800 mt-2">₹14,500</h3>
           </div>
         </div>
-
-        {/* Charts & Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Chart Section */}
           <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <h3 className="font-bold text-gray-800 mb-6 text-lg">Weekly Collection Volume by Category</h3>
             <div className="h-80">
@@ -266,8 +305,6 @@ function AdminDashboard() {
               </ResponsiveContainer>
             </div>
           </div>
-
-          {/* Live Dispatch Table */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <h3 className="font-bold text-gray-800 mb-4 text-lg">Live Dispatch Logs</h3>
             <div className="space-y-4">
@@ -289,7 +326,6 @@ function AdminDashboard() {
               </div>
             </div>
           </div>
-
         </div>
       </main>
     </div>
