@@ -74,7 +74,6 @@ function CitizenPortal() {
   const [isLocating, setIsLocating] = useState(false);
   const [myPoints, setMyPoints] = useState(() => parseInt(localStorage.getItem('sih_green_points') || '1250'));
 
-  // Extended Categories with Groups
   const categories = [
     { id: 'organic', name: t('organic'), icon: Leaf, pricePerKg: 2, group: 'biodegradable' },
     { id: 'paper', name: t('paper'), icon: Newspaper, pricePerKg: 15, group: 'nonBiodegradable' },
@@ -186,11 +185,9 @@ function CitizenPortal() {
     { name: "Aniket Ghosh", points: 210, isUser: false }
   ].sort((a, b) => b.points - a.points);
 
-  // Helper to render category sections
   const renderCategoryGroup = (groupKey, groupTitleKey) => {
     const groupItems = categories.filter(c => c.group === groupKey);
     if (groupItems.length === 0) return null;
-    
     return (
       <div key={groupKey} className="mb-6">
         <h3 className="text-left font-bold text-gray-700 text-sm mb-3 border-b border-gray-100 pb-2">{t(groupTitleKey)}</h3>
@@ -296,12 +293,34 @@ function CitizenPortal() {
               <textarea value={address} onChange={(e) => setAddress(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 text-sm min-h-[80px]" placeholder="Flat, Building, Street..."></textarea>
             </div>
 
+            {/* SPLIT CAMERA AND FILE UPLOAD BUTTONS */}
             <div>
-              <label className={`w-full flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed font-bold transition-colors cursor-pointer ${photoUploaded ? 'bg-green-50 border-green-500 text-green-700' : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
-                {photoUploaded ? <CheckCircle2 className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
-                {photoUploaded ? 'Waste Photo Attached' : t('addPhoto')}
-                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('addPhoto')}</label>
+              {photoUploaded ? (
+                <label className="w-full flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-green-500 bg-green-50 text-green-700 font-bold cursor-pointer hover:bg-green-100 transition-colors shadow-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Photo Attached (Click to change)
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
+                    <Camera className="w-6 h-6 mb-1 text-gray-500" />
+                    <span className="text-sm font-bold text-gray-700">{t('takePhoto')}</span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-70">Open Camera</span>
+                    {/* capture="environment" forces the camera */}
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
+                  </label>
+                  
+                  <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
+                    <ImageIcon className="w-6 h-6 mb-1 text-gray-500" />
+                    <span className="text-sm font-bold text-gray-700">{t('uploadFile')}</span>
+                    <span className="text-[10px] uppercase tracking-wider opacity-70">From Gallery</span>
+                    {/* no capture attribute allows file selection */}
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
@@ -538,6 +557,7 @@ function KabadiwalaPortal() {
         )}
       </main>
 
+      {/* FULL SCREEN PHOTO MODAL */}
       {viewingPhoto && (
         <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <button onClick={() => setViewingPhoto(null)} className="absolute top-4 right-4 text-white/70 hover:text-white p-2">
