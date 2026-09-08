@@ -1,32 +1,52 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+
+// Global Language Toggler Helper
+const LanguageToggle = () => {
+  const { i18n } = useTranslation();
+  const toggle = () => {
+    const langs = ['en', 'hi', 'bn'];
+    const nextLang = langs[(langs.indexOf(i18n.language) + 1) % langs.length];
+    i18n.changeLanguage(nextLang);
+  };
+  return (
+    <button onClick={toggle} className="flex items-center gap-2 bg-white/20 text-white px-3 py-1.5 rounded-md font-semibold text-sm hover:bg-white/30 transition-colors">
+      <Languages className="w-4 h-4" />
+      {i18n.language.toUpperCase()}
+    </button>
+  );
+};
 
 // ==========================================
 // 1. LOGIN SCREEN
 // ==========================================
 function LoginScreen() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  
   return (
-    <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-4 font-sans relative">
+      <div className="absolute top-4 right-4 bg-green-600 rounded-md"><LanguageToggle /></div>
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-black text-green-700 mb-2">♻️ Kabadiwala Connect</h1>
-          <p className="text-gray-500">Select your portal to continue</p>
+          <h1 className="text-3xl font-black text-green-700 mb-2">♻️ {t('appTitle')}</h1>
+          <p className="text-gray-500">{t('selectPortal')}</p>
         </div>
         <div className="space-y-4">
           <button onClick={() => navigate('/citizen')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all group">
             <div className="bg-green-100 p-3 rounded-lg text-green-600 group-hover:bg-green-200 transition-colors"><User className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">Citizen</h3><p className="text-sm text-gray-500">Book a scrap pickup</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('citizen')}</h3><p className="text-sm text-gray-500">{t('citizenDesc')}</p></div>
           </button>
           <button onClick={() => navigate('/kabadiwala')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50 transition-all group">
             <div className="bg-orange-100 p-3 rounded-lg text-orange-600 group-hover:bg-orange-200 transition-colors"><Truck className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">Kabadiwala</h3><p className="text-sm text-gray-500">Accept nearby requests</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('kabadiwala')}</h3><p className="text-sm text-gray-500">{t('kabadiwalaDesc')}</p></div>
           </button>
           <button onClick={() => navigate('/admin')} className="w-full flex items-center p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
             <div className="bg-blue-100 p-3 rounded-lg text-blue-600 group-hover:bg-blue-200 transition-colors"><ShieldCheck className="w-6 h-6" /></div>
-            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">Municipality Admin</h3><p className="text-sm text-gray-500">Manage rates & track data</p></div>
+            <div className="ml-4 text-left"><h3 className="font-bold text-gray-800">{t('admin')}</h3><p className="text-sm text-gray-500">{t('adminDesc')}</p></div>
           </button>
         </div>
       </div>
@@ -35,18 +55,19 @@ function LoginScreen() {
 }
 
 // ==========================================
-// 2. UPGRADED CITIZEN PORTAL
+// 2. CITIZEN PORTAL
 // ==========================================
 function CitizenPortal() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [weights, setWeights] = useState({});
-  const [bookingSuccess, setBookingSuccess] = useState(false); // Controls the success popup
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   const categories = [
-    { id: 'paper', name: 'Paper', icon: Newspaper, pricePerKg: 15 },
-    { id: 'metal', name: 'Metal', icon: Wrench, pricePerKg: 30 },
-    { id: 'plastic', name: 'Plastic', icon: Recycle, pricePerKg: 12 },
-    { id: 'ewaste', name: 'E-Waste', icon: MonitorSmartphone, pricePerKg: 50 },
+    { id: 'paper', name: t('paper'), icon: Newspaper, pricePerKg: 15 },
+    { id: 'metal', name: t('metal'), icon: Wrench, pricePerKg: 30 },
+    { id: 'plastic', name: t('plastic'), icon: Recycle, pricePerKg: 12 },
+    { id: 'ewaste', name: t('ewaste'), icon: MonitorSmartphone, pricePerKg: 50 },
   ];
 
   const toggleScrap = (id) => {
@@ -65,7 +86,6 @@ function CitizenPortal() {
     return total + (cat ? cat.pricePerKg * weight : 0);
   }, 0);
 
-  // Gamification: Calculate total weight to display CO2 saved
   const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
   const co2Saved = (totalWeight * 1.5).toFixed(1); 
   const hasSelection = Object.keys(weights).length > 0;
@@ -73,14 +93,17 @@ function CitizenPortal() {
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       <nav className="bg-green-600 p-4 shadow-md flex justify-between items-center text-white">
-        <h1 className="text-xl font-bold flex items-center gap-2">♻️ Citizen Portal</h1>
-        <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> Logout</button>
+        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle')}</h1>
+        <div className="flex gap-2">
+          <LanguageToggle />
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
+        </div>
       </nav>
       
       <main className="max-w-md mx-auto mt-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200 relative">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">Book a Scrap Pickup</h2>
-          <p className="text-gray-500 text-sm mt-1 mb-6">Select scrap types to estimate value</p>
+          <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup')}</h2>
+          <p className="text-gray-500 text-sm mt-1 mb-6">{t('selectScrap')}</p>
           
           <div className="grid grid-cols-2 gap-4 mb-6">
             {categories.map((cat) => {
@@ -98,7 +121,7 @@ function CitizenPortal() {
 
           {hasSelection && (
             <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300">
-              <h3 className="font-bold text-green-800 mb-3 text-left text-sm">Estimated Weight (kg)</h3>
+              <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight')}</h3>
               <div className="space-y-3 mb-4">
                 {Object.entries(weights).map(([id, weight]) => {
                   const cat = categories.find(c => c.id === id);
@@ -115,7 +138,7 @@ function CitizenPortal() {
                 })}
               </div>
               <div className="pt-3 border-t border-green-200 flex justify-between items-center">
-                <span className="font-bold text-gray-600 text-sm">Total Value:</span>
+                <span className="font-bold text-gray-600 text-sm">{t('totalValue')}</span>
                 <span className="text-2xl font-black text-green-700">₹{totalEstimatedValue}</span>
               </div>
             </div>
@@ -123,8 +146,8 @@ function CitizenPortal() {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><MapPin className="w-4 h-4" /> Location</button>
-              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><Camera className="w-4 h-4" /> Add Photo</button>
+              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><MapPin className="w-4 h-4" /> {t('location')}</button>
+              <button className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 p-3 rounded-lg border border-gray-300 hover:bg-gray-200 font-medium text-sm transition-colors"><Camera className="w-4 h-4" /> {t('addPhoto')}</button>
             </div>
             
             <button 
@@ -132,38 +155,35 @@ function CitizenPortal() {
               disabled={!hasSelection} 
               className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              {hasSelection ? 'Schedule Pickup' : 'Select Scrap to Continue'}
+              {hasSelection ? t('schedulePickup') : t('selectScrapBtn')}
             </button>
           </div>
         </div>
       </main>
 
-      {/* Success Modal Overlay */}
       {bookingSuccess && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-black text-gray-800">Pickup Scheduled!</h2>
-            <p className="text-gray-500 mt-2 mb-6 text-sm">Your local Kabadiwala is on the way. <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{Math.floor(Math.random() * 9000) + 1000}</span></p>
+            <h2 className="text-2xl font-black text-gray-800">{t('successTitle')}</h2>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>Booking ID: <span className="font-bold text-gray-800">#BK-{Math.floor(Math.random() * 9000) + 1000}</span></p>
             
-            {/* Gamification Badge */}
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
               <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2">
-                🌍 You just saved {co2Saved} kg of CO2!
+                🌍 You saved {co2Saved} kg of CO2!
               </span>
-              <span className="text-xs text-blue-600 mt-1 block">Thank you for recycling.</span>
             </div>
 
             <button 
               onClick={() => {
                 setBookingSuccess(false);
-                setWeights({}); // Reset the form
+                setWeights({});
               }} 
               className="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 transition-colors"
             >
-              Back to Home
+              {t('backHome')}
             </button>
           </div>
         </div>
@@ -173,7 +193,7 @@ function CitizenPortal() {
 }
 
 // ==========================================
-// 3. KABADIWALA PORTAL (Unchanged)
+// 3. KABADIWALA PORTAL (English Only For Now)
 // ==========================================
 function KabadiwalaPortal() {
   const navigate = useNavigate();
@@ -247,7 +267,7 @@ function KabadiwalaPortal() {
 }
 
 // ==========================================
-// 4. ADMIN DASHBOARD (Unchanged)
+// 4. ADMIN DASHBOARD (English Only For Now)
 // ==========================================
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -318,10 +338,6 @@ function AdminDashboard() {
               </div>
               <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100">
                 <div><p className="font-semibold text-gray-800 text-sm">#BK-9023</p><p className="text-xs text-gray-500">Tech Park Entry</p></div>
-                <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-md">Pending</span>
-              </div>
-              <div className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100">
-                <div><p className="font-semibold text-gray-800 text-sm">#BK-9024</p><p className="text-xs text-gray-500">Heritage Campus</p></div>
                 <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-md">Pending</span>
               </div>
             </div>
