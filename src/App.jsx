@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// ADDED MISSING ICONS: Lock, Radio, Clock, LocateFixed 
 import { 
   Newspaper, MonitorSmartphone, Wrench, Recycle, MapPin, Plus, Minus, 
   User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, 
@@ -25,7 +24,7 @@ const safeGetPrices = () => {
   catch (e) { return defaultPrices; }
 };
 
-// WEST BENGAL MUNICIPALITIES DATABASE
+// WEST BENGAL MUNICIPALITIES DATABASE (Alphabetically Sorted)
 const wbMunicipalities = [
   { id: 'asansol', name: 'Asansol Municipal Corporation', lat: 23.6739, lng: 86.9524 },
   { id: 'berhampore', name: 'Berhampore Municipality', lat: 24.0988, lng: 88.2679 },
@@ -34,7 +33,7 @@ const wbMunicipalities = [
   { id: 'haldia', name: 'Haldia Municipality', lat: 22.0667, lng: 88.0698 },
   { id: 'howrah', name: 'Howrah Municipal Corporation', lat: 22.5958, lng: 88.3110 },
   { id: 'kharagpur', name: 'Kharagpur Municipality', lat: 22.3302, lng: 87.3237 },
-  { id: 'kolkata', name: 'Kolkata Municipal Corporation', lat: 22.5726, lng: 88.3639 },
+  { id: 'kolkata', name: 'Kolkata Municipal Corporation', lat: 22.5726, lng: 88.3639 }, // Default
   { id: 'malda', name: 'Malda Municipality', lat: 25.0108, lng: 88.1411 },
   { id: 'nabadwip', name: 'Nabadwip Municipality', lat: 23.4033, lng: 88.3659 },
   { id: 'siliguri', name: 'Siliguri Municipal Corporation', lat: 26.7271, lng: 88.3953 }
@@ -81,8 +80,8 @@ function AdminLiveMap({ onUpdateStats }) {
     loadLeaflet().then((L) => {
       if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-      const baseLat = parseFloat(localStorage.getItem('admin_municipality_lat')) || 23.4033;
-      const baseLng = parseFloat(localStorage.getItem('admin_municipality_lng')) || 88.3659;
+      const baseLat = parseFloat(localStorage.getItem('admin_municipality_lat')) || 22.5726;
+      const baseLng = parseFloat(localStorage.getItem('admin_municipality_lng')) || 88.3639;
 
       const map = L.map(mapContainerRef.current, { zoomControl: false, attributionControl: false }).setView([baseLat, baseLng], 14);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
@@ -191,7 +190,6 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
   const [eta, setEta] = useState(6);
   const [distanceKm, setDistanceKm] = useState(1.4);
   const [collectorPos, setCollectorPos] = useState(null);
-  const [isGpsLocked, setIsGpsLocked] = useState(false);
 
   useEffect(() => {
     const loadLeaflet = () => {
@@ -257,21 +255,19 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
         return () => clearInterval(movementInterval);
       };
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => { setIsGpsLocked(true); initMapWithCoords(pos.coords.latitude, pos.coords.longitude); },
-          () => {
-             const fbLat = parseFloat(localStorage.getItem('kaba_municipality_lat')) || 23.4033;
-             const fbLng = parseFloat(localStorage.getItem('kaba_municipality_lng')) || 88.3659;
-             initMapWithCoords(fbLat, fbLng);
-          }, 
-          { enableHighAccuracy: true }
-        );
+      // Removed GPS Prompt logic entirely to prevent browser permission blocks
+      let fbLat = 22.5726; // Default to Kolkata
+      let fbLng = 88.3639;
+
+      if (pickup && pickup.coords) {
+         fbLat = pickup.coords[0];
+         fbLng = pickup.coords[1];
       } else {
-        const fbLat = parseFloat(localStorage.getItem('kaba_municipality_lat')) || 23.4033;
-        const fbLng = parseFloat(localStorage.getItem('kaba_municipality_lng')) || 88.3659;
-        initMapWithCoords(fbLat, fbLng);
+         fbLat = parseFloat(localStorage.getItem(role === 'citizen' ? 'cit_municipality_lat' : 'kaba_municipality_lat')) || 22.5726;
+         fbLng = parseFloat(localStorage.getItem(role === 'citizen' ? 'cit_municipality_lng' : 'kaba_municipality_lng')) || 88.3639;
       }
+      
+      initMapWithCoords(fbLat, fbLng);
     });
 
     return () => {
@@ -298,7 +294,7 @@ function LiveTrackingMap({ pickup, role = 'kabadiwala', onComplete }) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="bg-orange-100 text-orange-700 text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider">En Route</span>
-            {isGpsLocked && <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Real GPS</span>}
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Location Locked</span>
           </div>
           <span className="text-sm font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">Cash: {pickup.estValue}</span>
         </div>
@@ -368,7 +364,7 @@ function KabadiwalaLogin() {
   const { t } = useTranslation();
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
-  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'nabadwip') || wbMunicipalities[0])); 
+  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'kolkata') || wbMunicipalities[0])); 
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -432,7 +428,7 @@ function AdminLogin() {
   const { t } = useTranslation();
   const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'nabadwip') || wbMunicipalities[0])); 
+  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'kolkata') || wbMunicipalities[0])); 
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -509,12 +505,15 @@ function CitizenPortal() {
   const [address, setAddress] = useState("");
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [photoData, setPhotoData] = useState(null); 
-  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'nabadwip') || wbMunicipalities[0])); 
+  const [selectedMuniStr, setSelectedMuniStr] = useState(JSON.stringify(wbMunicipalities.find(m => m.id === 'kolkata') || wbMunicipalities[0])); 
   
   const [isLocating, setIsLocating] = useState(false);
   const [userCoords, setUserCoords] = useState(null); 
   
-  const [myPoints, setMyPoints] = useState(() => parseInt(safeGetRequests('sih_green_points') || '1250'));
+  const [myPoints, setMyPoints] = useState(() => {
+    const saved = parseInt(localStorage.getItem('sih_green_points'));
+    return isNaN(saved) ? 1250 : saved;
+  });
   const [prices] = useState(() => safeGetPrices());
 
   const categories = [
@@ -537,21 +536,39 @@ function CitizenPortal() {
   const hasSelection = Object.keys(weights).length > 0;
   const isFormComplete = name.trim() !== "" && phone.trim() !== "" && address.trim() !== "" && photoUploaded;
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) return;
+  // Simulate Instant GPS Lock based on selected municipality (No Permissions Asked)
+const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setAddress("GPS Not Supported");
+      return;
+    }
+    
     setIsLocating(true);
+    
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        setUserCoords([latitude, longitude]); 
         try {
+          // Free reverse geocoding API to get the real-world location
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
           const data = await res.json();
-          const preciseAddress = data.display_name || data.address.suburb || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-          setAddress(preciseAddress);
-        } catch (error) { setAddress("GPS Location Captured"); } finally { setIsLocating(false); }
+          
+          // Grabs the exact, full address string (e.g., Street, Neighborhood, City, State, ZIP)
+          const exactAddress = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          
+          // Auto-fills only the text area
+          setAddress(exactAddress);
+        } catch (error) {
+          setAddress("GPS Location Captured");
+        } finally {
+          setIsLocating(false);
+        }
       },
-      () => setIsLocating(false), { enableHighAccuracy: true }
+      (error) => {
+        setIsLocating(false);
+        setAddress("GPS Blocked by browser.");
+      },
+      { enableHighAccuracy: true }
     );
   };
 
@@ -578,6 +595,9 @@ function CitizenPortal() {
 
     const muniObj = JSON.parse(selectedMuniStr);
     const finalCoords = userCoords || [muniObj.lat, muniObj.lng];
+
+    localStorage.setItem('cit_municipality_lat', muniObj.lat);
+    localStorage.setItem('cit_municipality_lng', muniObj.lng);
 
     const newBooking = {
       id: generatedId, name: name, phone: phone, address: address, distance: "0.2 km",
@@ -621,7 +641,7 @@ function CitizenPortal() {
     if (groupItems.length === 0) return null;
     return (
       <div key={groupKey} className="mb-6">
-        <h3 className="text-left font-bold text-gray-700 text-sm mb-3 border-b border-gray-100 pb-2">{t(groupTitleKey)}</h3>
+        <h3 className="text-left font-bold text-gray-700 text-sm mb-3 border-b border-gray-100 pb-2">{t(groupTitleKey, groupTitleKey)}</h3>
         <div className="grid grid-cols-2 gap-4">
           {groupItems.map((cat) => {
             const Icon = cat.icon;
@@ -642,10 +662,10 @@ function CitizenPortal() {
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       <nav className="bg-green-600 p-4 shadow-md flex justify-between items-center text-white">
-        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle')}</h1>
+        <h1 className="text-xl font-bold flex items-center gap-2">♻️ {t('citizenTitle', 'Citizen Portal')}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-green-700 px-3 py-1.5 rounded-md hover:bg-green-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
         </div>
       </nav>
       
@@ -654,8 +674,8 @@ function CitizenPortal() {
         {/* STEP 1 */}
         <div className={`transition-all duration-300 ${!isTracking && step === 1 ? 'block opacity-100' : 'hidden opacity-0'}`}>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup')}</h2>
-            <p className="text-gray-500 text-sm mt-1 mb-6 font-semibold text-green-700">{t('selectScrap')}</p>
+            <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup', 'Book a Scrap Pickup')}</h2>
+            <p className="text-gray-500 text-sm mt-1 mb-6 font-semibold text-green-700">{t('selectScrap', 'Select Scrap')}</p>
             
             {renderCategoryGroup('biodegradable', 'cat_biodegradable')}
             {renderCategoryGroup('nonBiodegradable', 'cat_nonBiodegradable')}
@@ -663,7 +683,7 @@ function CitizenPortal() {
 
             {hasSelection && (
               <div className="mb-6 p-4 bg-green-50 rounded-xl border border-green-200 animate-in fade-in zoom-in duration-300">
-                <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight')}</h3>
+                <h3 className="font-bold text-green-800 mb-3 text-left text-sm">{t('estWeight', 'Est. Weight')}</h3>
                 <div className="space-y-3 mb-4">
                   {Object.entries(weights).map(([id, weight]) => {
                     const cat = categories.find(c => c.id === id);
@@ -680,7 +700,7 @@ function CitizenPortal() {
                   })}
                 </div>
                 <div className="pt-3 border-t border-green-200 flex justify-between items-center">
-                  <span className="font-bold text-gray-600 text-sm">{t('totalValue')}</span>
+                  <span className="font-bold text-gray-600 text-sm">{t('totalValue', 'Total Value')}</span>
                   <span className="text-2xl font-black text-green-700">₹{totalEstimatedValue}</span>
                 </div>
               </div>
@@ -691,7 +711,7 @@ function CitizenPortal() {
               disabled={!hasSelection} 
               className={`w-full p-4 rounded-lg font-bold text-white transition-all ${hasSelection ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              {hasSelection ? t('nextStep') : t('selectScrapBtn')}
+              {hasSelection ? t('nextStep', 'Next Step') : t('selectScrapBtn', 'Select Scrap')}
             </button>
           </div>
         </div>
@@ -700,22 +720,22 @@ function CitizenPortal() {
         <div className={`transition-all duration-300 ${!isTracking && step === 2 ? 'block opacity-100 animate-in slide-in-from-right-4' : 'hidden opacity-0'}`}>
           <div className="flex items-center mb-6">
             <button onClick={() => setStep(1)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 mr-3"><ArrowLeft className="w-5 h-5 text-gray-600" /></button>
-            <h2 className="text-xl font-bold text-gray-800">{t('personalDetails')}</h2>
+            <h2 className="text-xl font-bold text-gray-800">{t('personalDetails', 'Pickup Details')}</h2>
           </div>
           
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('fullName')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('fullName', 'Full Name')}</label>
               <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" placeholder="E.g. Arka Pal" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('mobileNumber')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('mobileNumber', 'Mobile')}</label>
               <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50" placeholder="+91" />
             </div>
 
             {/* MUNICIPALITY SELECTOR */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('enterMunicipality')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('enterMunicipality', 'Municipality / Block')}</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 <select value={selectedMuniStr} onChange={(e) => setSelectedMuniStr(e.target.value)} className="w-full pl-10 pr-4 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 appearance-none font-medium text-gray-800 text-sm">
@@ -728,15 +748,15 @@ function CitizenPortal() {
 
             <div>
               <div className="flex justify-between items-end mb-1">
-                <label className="block text-sm font-semibold text-gray-700">{t('exactAddress')}</label>
-                <button onClick={handleGetLocation} className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded hover:bg-green-100 flex items-center gap-1">
-                  {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />} {t('getGps')}
+                <label className="block text-sm font-semibold text-gray-700">{t('exactAddress', 'Address')}</label>
+                <button onClick={handleGetLocation} className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded hover:bg-green-100 flex items-center gap-1 transition-colors">
+                  {isLocating ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />} {t('getGps', 'Auto-fill Location')}
                 </button>
               </div>
               <textarea value={address} onChange={(e) => setAddress(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-50 text-sm min-h-[80px]" placeholder="Flat, Building, Street..."></textarea>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('addPhoto')}</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('addPhoto', 'Add Photo')}</label>
               {photoUploaded ? (
                 <label className="w-full flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-green-500 bg-green-50 text-green-700 font-bold cursor-pointer hover:bg-green-100 transition-colors shadow-sm">
                   <CheckCircle2 className="w-5 h-5" /> Photo Attached
@@ -746,12 +766,12 @@ function CitizenPortal() {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
                     <Camera className="w-6 h-6 mb-1 text-gray-500" />
-                    <span className="text-sm font-bold text-gray-700">{t('takePhoto')}</span>
+                    <span className="text-sm font-bold text-gray-700">{t('takePhoto', 'Camera')}</span>
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
                   </label>
                   <label className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer text-center">
                     <ImageIcon className="w-6 h-6 mb-1 text-gray-500" />
-                    <span className="text-sm font-bold text-gray-700">{t('uploadFile')}</span>
+                    <span className="text-sm font-bold text-gray-700">{t('uploadFile', 'Gallery')}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                   </label>
                 </div>
@@ -763,7 +783,7 @@ function CitizenPortal() {
             disabled={!isFormComplete} 
             className={`w-full p-4 rounded-lg font-bold text-white transition-all ${isFormComplete ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-400 cursor-not-allowed'}`}
           >
-            {isFormComplete ? t('schedulePickup') : t('fillDetailsBtn')}
+            {isFormComplete ? t('schedulePickup', 'Schedule') : t('fillDetailsBtn', 'Fill Details')}
           </button>
         </div>
 
@@ -779,12 +799,12 @@ function CitizenPortal() {
         <div className="max-w-md mx-auto mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-white flex justify-between items-center">
             <div>
-              <h3 className="font-black flex items-center gap-2 text-lg"><Trophy className="w-5 h-5 text-yellow-300"/> {t('ecoWarriors')}</h3>
-              <p className="text-xs text-green-100 mt-1">{t('topRecyclers')}</p>
+              <h3 className="font-black flex items-center gap-2 text-lg"><Trophy className="w-5 h-5 text-yellow-300"/> {t('ecoWarriors', 'Leaderboard')}</h3>
+              <p className="text-xs text-green-100 mt-1">{t('topRecyclers', 'Top Recyclers')}</p>
             </div>
             <div className="text-right">
               <span className="block text-2xl font-black text-yellow-300">{myPoints}</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">{t('myPoints')}</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">{t('myPoints', 'Points')}</span>
             </div>
           </div>
           <div className="p-2 bg-gray-50">
@@ -800,9 +820,9 @@ function CitizenPortal() {
           </div>
           {myPoints >= 1000 && (
             <div className="p-5 bg-gradient-to-b from-green-50 to-green-100 border-t border-green-200 text-center">
-              <p className="text-sm text-green-800 font-bold mb-3">{t('goldTier')}</p>
+              <p className="text-sm text-green-800 font-bold mb-3">{t('goldTier', 'Gold Tier!')}</p>
               <button onClick={() => alert(`Generating Official SIH Eco-Certificate...`)} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-black py-3 rounded-xl shadow-md hover:shadow-lg hover:from-yellow-500 hover:to-amber-600 transition-all">
-                <Download className="w-5 h-5" /> {t('downloadCert')}
+                <Download className="w-5 h-5" /> {t('downloadCert', 'Download')}
               </button>
             </div>
           )}
@@ -814,8 +834,8 @@ function CitizenPortal() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-in zoom-in-95 duration-300 shadow-2xl">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"><CheckCircle2 className="w-10 h-10 text-green-600" /></div>
-            <h2 className="text-2xl font-black text-gray-800">{t('successTitle')}</h2>
-            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc')} <br/>ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
+            <h2 className="text-2xl font-black text-gray-800">{t('successTitle', 'Success!')}</h2>
+            <p className="text-gray-500 mt-2 mb-6 text-sm">{t('successDesc', 'Collector assigned.')} <br/>ID: <span className="font-bold text-gray-800">#BK-{bookingId}</span></p>
             
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
               <span className="text-sm font-bold text-blue-800 flex items-center justify-center gap-2 mb-1">🌍 You saved {co2Saved} kg of CO2!</span>
@@ -826,7 +846,7 @@ function CitizenPortal() {
               <button onClick={() => { setBookingSuccess(false); setIsTracking(true); }} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors shadow-md flex items-center justify-center gap-2">
                 <Navigation className="w-5 h-5" /> Track Kabadiwala
               </button>
-              <button onClick={resetWizard} className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors">{t('backHome')}</button>
+              <button onClick={resetWizard} className="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors">{t('backHome', 'Back to Home')}</button>
             </div>
           </div>
         </div>
@@ -845,13 +865,13 @@ function KabadiwalaPortal() {
   const [activePickup, setActivePickup] = useState(null);
   const [feedRequests, setFeedRequests] = useState([]);
   const [viewingPhoto, setViewingPhoto] = useState(null); 
-  const muniName = localStorage.getItem('kaba_municipality_name') || 'Nabadwip Municipality';
+  const muniName = localStorage.getItem('kaba_municipality_name') || 'Kolkata Municipal Corporation';
 
   useEffect(() => {
     if (isOnline) {
       const liveData = safeGetRequests();
-      const baseLat = parseFloat(localStorage.getItem('kaba_municipality_lat')) || 23.4033;
-      const baseLng = parseFloat(localStorage.getItem('kaba_municipality_lng')) || 88.3659;
+      const baseLat = parseFloat(localStorage.getItem('kaba_municipality_lat')) || 22.5726;
+      const baseLng = parseFloat(localStorage.getItem('kaba_municipality_lng')) || 88.3639;
 
       const mockData = [
         { id: 9991, name: "Hostel Block C", phone: "+91 9876543210", address: "Near Local School", distance: `0.5 km ${t('away', 'away')}`, scrap: `${t('paper', 'Paper')}, ${t('plastic', 'Plastic')}`, estValue: "₹180", time: "12 mins ago", hasPhoto: true, photoData: "https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?w=500&q=80", coords: [baseLat + 0.002, baseLng - 0.004] },
@@ -879,15 +899,15 @@ function KabadiwalaPortal() {
         <h1 className="text-xl font-bold flex items-center gap-2 truncate pr-2">🚚 {muniName}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-orange-700 px-3 py-1.5 rounded-md hover:bg-orange-800 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
         </div>
       </nav>
       
       <main className="max-w-md mx-auto mt-6 p-4 relative">
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
           <div>
-            <h2 className="font-bold text-gray-800 text-lg">{t('dutyStatus')}</h2>
-            <p className="text-sm text-gray-500">{isOnline ? t('onlineMsg') : t('offlineMsg')}</p>
+            <h2 className="font-bold text-gray-800 text-lg">{t('dutyStatus', 'Status')}</h2>
+            <p className="text-sm text-gray-500">{isOnline ? t('onlineMsg', 'Online') : t('offlineMsg', 'Offline')}</p>
           </div>
           <button onClick={() => setIsOnline(!isOnline)} className={`p-4 rounded-full text-white shadow-md transition-all ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}><Power className="w-6 h-6" /></button>
         </div>
@@ -895,15 +915,15 @@ function KabadiwalaPortal() {
         {!isOnline && !activePickup && (
           <div className="text-center py-12 px-6 bg-white rounded-xl border border-dashed border-gray-300">
             <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-gray-500 font-medium">{t('goOnlineMsg')}</h3>
+            <h3 className="text-gray-500 font-medium">{t('goOnlineMsg', 'Go online')}</h3>
           </div>
         )}
 
         {isOnline && !activePickup && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h3 className="font-bold text-gray-700 flex items-center gap-2">{t('liveRequests')}</h3>
+            <h3 className="font-bold text-gray-700 flex items-center gap-2">{t('liveRequests', 'Live Feed')}</h3>
             {feedRequests.length === 0 ? (
-              <p className="text-center text-gray-500 py-4">{t('noRequests')}</p>
+              <p className="text-center text-gray-500 py-4">{t('noRequests', 'Empty')}</p>
             ) : (
               feedRequests.map(req => (
                 <div key={req.id} className="bg-white p-4 rounded-xl shadow-sm border border-orange-100">
@@ -925,12 +945,12 @@ function KabadiwalaPortal() {
                     </div>
                     <div className="text-right">
                       <span className="block text-lg font-black text-green-700">{req.estValue}</span>
-                      <span className="text-xs text-gray-400">{t('estimated')}</span>
+                      <span className="text-xs text-gray-400">{t('estimated', 'Est.')}</span>
                     </div>
                   </div>
                   <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-                    <button onClick={() => handleDecline(req.id)} className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition-colors">{t('decline')}</button>
-                    <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm hover:bg-orange-600 transition-colors">{t('accept')}</button>
+                    <button onClick={() => handleDecline(req.id)} className="flex-1 py-2 text-gray-500 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition-colors">{t('decline', 'Decline')}</button>
+                    <button onClick={() => setActivePickup(req)} className="flex-1 py-2 text-white bg-orange-500 rounded-lg font-bold shadow-sm hover:bg-orange-600 transition-colors">{t('accept', 'Accept')}</button>
                   </div>
                 </div>
               ))
@@ -959,7 +979,7 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   
-  const municipalityName = localStorage.getItem('admin_municipality_name') || 'Nabadwip Municipality';
+  const municipalityName = localStorage.getItem('admin_municipality_name') || 'Kolkata Municipal Corporation';
   const [mapStats, setMapStats] = useState({ pending: 0, activeCollectors: 0 });
   
   const [prices, setPrices] = useState(() => safeGetPrices());
@@ -985,7 +1005,7 @@ function AdminDashboard() {
         <h1 className="text-xl font-bold flex items-center gap-2 truncate pr-2">📊 {municipalityName}</h1>
         <div className="flex gap-2">
           <LanguageToggle />
-          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-blue-900 px-3 py-1.5 rounded-md hover:bg-blue-950 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout')}</button>
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 bg-blue-900 px-3 py-1.5 rounded-md hover:bg-blue-950 text-sm font-semibold"><LogOut className="w-4 h-4" /> {t('logout', 'Logout')}</button>
         </div>
       </nav>
       <main className="max-w-6xl mx-auto mt-8 p-4">
