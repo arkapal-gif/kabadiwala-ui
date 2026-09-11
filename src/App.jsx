@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Monitor, Tv, Cpu, Plug, Battery, Zap, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, Phone, CheckCircle, XCircle, Navigation, TrendingUp, Users, AlertCircle, IndianRupee, Camera, CheckCircle2, Languages, Loader2, Volume2, VolumeX, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Monitor, Tv, Cpu, Plug, Battery, Zap, Recycle, MapPin, Plus, Minus, User, ShieldCheck, Truck, LogOut, Power, CheckCircle2, Languages, Loader2, Volume2, VolumeX, AlertTriangle, ArrowLeft, Navigation } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
 const LanguageToggle = () => {
@@ -71,7 +71,7 @@ function CitizenPortal() {
   const [address, setAddress] = useState("");
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [photoData, setPhotoData] = useState(null); 
-  const [mapCoords, setMapCoords] = useState({ lat: 22.5726, lon: 88.3639 }); // Default Kolkata
+  const [mapCoords, setMapCoords] = useState({ lat: 22.5726, lon: 88.3639 }); 
   
   const [isLocating, setIsLocating] = useState(false);
   const [myPoints, setMyPoints] = useState(() => {
@@ -261,12 +261,18 @@ function CitizenPortal() {
             <h2 className="text-2xl font-bold text-gray-800">{t('bookPickup', 'Log E-Waste')}</h2>
             <p className="text-gray-500 text-sm mt-1 mb-4 font-semibold text-green-700">{t('selectScrap', 'Select materials to estimate value')}</p>
             
+            {/* FULLY FIXED SAFETY WARNING BOX */}
             <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between text-left shadow-sm">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-6 h-6 text-yellow-600 shrink-0" />
-                <p className="text-xs text-yellow-800 font-semibold">{t('safetyWarning', 'Safety Warning: Do not burn cables.')}</p>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-6 h-6 text-yellow-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-yellow-800 font-medium leading-snug">
+                  {t('safetyWarningFull', 'Safety Warning: Do not burn cables or break open batteries. Hand them safely to authorized recyclers to protect your health.')}
+                </p>
               </div>
-              <button onClick={(e) => speakAudio(e, t('safetyWarningFull', 'Safety Warning: Do not burn cables or break open batteries. Hand them safely to authorized recyclers to protect your health.'))} className="p-2 bg-yellow-200 text-yellow-700 rounded-full hover:bg-yellow-300 shadow-sm shrink-0 ml-2 transition-colors">
+              <button 
+                onClick={(e) => speakAudio(e, t('safetyWarningFull', 'Safety Warning: Do not burn cables or break open batteries. Hand them safely to authorized recyclers to protect your health.'))} 
+                className="p-2 bg-yellow-200 text-yellow-700 rounded-full hover:bg-yellow-300 shadow-sm shrink-0 ml-3 transition-colors"
+              >
                 {isSpeaking ? <VolumeX className="w-5 h-5 animate-pulse" /> : <Volume2 className="w-5 h-5" />}
               </button>
             </div>
@@ -329,14 +335,12 @@ function CitizenPortal() {
                 </div>
                 <textarea value={address} onChange={(e) => setAddress(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-sm min-h-[60px]" />
                 
-                {/* Dynamic Location Map */}
                 <div className="w-full h-32 mt-2 bg-gray-100 rounded-lg overflow-hidden border border-gray-300 shadow-inner">
                   <iframe 
                     width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" 
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCoords.lon-0.02}%2C${mapCoords.lat-0.02}%2C${mapCoords.lon+0.02}%2C${mapCoords.lat+0.02}&layer=mapnik&marker=${mapCoords.lat}%2C${mapCoords.lon}`}>
                   </iframe>
                 </div>
-
               </div>
               <div>
                 <label className={`w-full flex items-center justify-center gap-2 p-4 rounded-lg border-2 border-dashed font-bold cursor-pointer ${photoUploaded ? 'bg-green-50 border-green-500 text-green-700' : 'bg-gray-50 border-gray-300 text-gray-600'}`}>
@@ -427,7 +431,6 @@ function KabadiwalaPortal() {
               <h3 className="font-bold text-gray-700">{t('liveRequests', 'Live Lots Near You')}</h3>
             </div>
             
-            {/* Live Recycler Map */}
             <div className="w-full h-48 bg-gray-100 rounded-xl overflow-hidden border border-orange-200 shadow-sm">
               <iframe 
                 width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" 
