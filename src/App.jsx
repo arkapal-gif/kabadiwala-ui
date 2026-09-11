@@ -6,7 +6,7 @@ import {
   ShieldCheck, Truck, LogOut, CheckCircle2, Languages, Loader2, Volume2, VolumeX, 
   AlertTriangle, ArrowLeft, Navigation, Camera, ImagePlus, X, Phone, Lock, 
   ChevronRight, History, IndianRupee, Clock, Map, Target, Banknote, CreditCard, 
-  XCircle, Building2, Factory, Trash2, Ban, Save, Edit3
+  XCircle, Building2, Factory, Trash2, Ban, Save, Edit3, Trophy, Medal, Award, Star, Share2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 
@@ -21,15 +21,7 @@ const INITIAL_RECYCLERS = [
   { id: 'r7', name: "Kolkata E-Bin Hub", phone: "+91 7766554433", address: "Dum Dum Cantonment, Kolkata", lat: 22.6300, lon: 88.4200, workingHours: "9:00 AM - 5:30 PM", authorized: true }
 ];
 
-const DEFAULT_RATES = {
-  crt: 10,
-  lcd: 40,
-  pcb: 150,
-  cables: 80,
-  batteries: 60,
-  motors: 45,
-  plastics: 15
-};
+const DEFAULT_RATES = { crt: 10, lcd: 40, pcb: 150, cables: 80, batteries: 60, motors: 45, plastics: 15 };
 
 const LanguageToggle = () => {
   const { i18n } = useTranslation();
@@ -59,9 +51,13 @@ function LoginScreen() {
   const [activeRecyclers, setActiveRecyclers] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('scrapup_recyclers');
-    const list = saved ? JSON.parse(saved) : INITIAL_RECYCLERS;
-    setActiveRecyclers(list.filter(r => r.authorized !== false));
+    try {
+      const saved = localStorage.getItem('scrapup_recyclers');
+      const list = saved ? JSON.parse(saved) : INITIAL_RECYCLERS;
+      setActiveRecyclers(Array.isArray(list) ? list.filter(r => r?.authorized !== false) : INITIAL_RECYCLERS);
+    } catch (e) {
+      setActiveRecyclers(INITIAL_RECYCLERS);
+    }
   }, []);
 
   const handleLogin = (e) => {
@@ -126,7 +122,7 @@ function LoginScreen() {
                     className="w-full p-3.5 border-2 border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-orange-500 outline-none transition-all font-semibold text-sm cursor-pointer"
                   >
                     {activeRecyclers.map(r => (
-                      <option key={r.id} value={r.id}>{r.name} - {r.address.split(',')[0]}</option>
+                      <option key={r.id} value={r.id}>{r.name} - {(r.address || "").split(',')[0]}</option>
                     ))}
                   </select>
                 </div>
@@ -178,7 +174,7 @@ function LoginScreen() {
 }
 
 // ==========================================
-// 2. COLLECTOR PORTAL
+// 2. COLLECTOR PORTAL (With Eco Warrior!)
 // ==========================================
 function CitizenPortal() {
   const navigate = useNavigate();
@@ -189,7 +185,7 @@ function CitizenPortal() {
   const [weights, setWeights] = useState({});
   const [isSpeaking, setIsSpeaking] = useState(false);
   
-  const [name, setName] = useState("");
+  const [name, setName] = useState("Arka Pal"); 
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState('cash'); 
   const [upiId, setUpiId] = useState("");
@@ -203,25 +199,41 @@ function CitizenPortal() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [mySells, setMySells] = useState([]);
 
+  // Eco-Warrior State
+  const [myPoints, setMyPoints] = useState(() => parseInt(localStorage.getItem('scrapup_points')) || 1250);
+  const [showCertificate, setShowCertificate] = useState(false);
+
   useEffect(() => {
-    const loadVoices = () => window.speechSynthesis.getVoices();
-    loadVoices();
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = loadVoices;
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => window.speechSynthesis.getVoices();
+      loadVoices();
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+      }
     }
   }, []);
 
   useEffect(() => {
     const loadData = () => {
-      const savedRates = localStorage.getItem('scrapup_rates');
-      if (savedRates) setDynamicRates(JSON.parse(savedRates));
+      try {
+        const savedRates = localStorage.getItem('scrapup_rates');
+        if (savedRates) setDynamicRates(JSON.parse(savedRates) || DEFAULT_RATES);
 
-      const savedRecyclers = localStorage.getItem('scrapup_recyclers');
-      const list = savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS;
-      setDirectory(list.filter(r => r.authorized !== false));
+        const savedRecyclers = localStorage.getItem('scrapup_recyclers');
+        const list = savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS;
+        setDirectory(Array.isArray(list) ? list.filter(r => r?.authorized !== false) : INITIAL_RECYCLERS);
 
-      setPendingRequests(JSON.parse(localStorage.getItem('scrapup_requests') || '[]'));
-      setMySells(JSON.parse(localStorage.getItem('scrapup_history') || '[]'));
+        const pReqs = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+        setPendingRequests(Array.isArray(pReqs) ? pReqs : []);
+
+        const sReqs = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
+        setMySells(Array.isArray(sReqs) ? sReqs : []);
+      } catch (e) {
+        console.error("Storage corrupted. Resetting memory.", e);
+        setPendingRequests([]);
+        setMySells([]);
+        setDirectory(INITIAL_RECYCLERS);
+      }
     };
     loadData();
     const interval = setInterval(loadData, 1500); 
@@ -229,18 +241,18 @@ function CitizenPortal() {
   }, []);
 
   const categories = [
-    { id: 'crt', name: t('cat_crt', 'CRTs'), icon: Monitor, pricePerKg: dynamicRates.crt, group: 'specialized' },
-    { id: 'lcd', name: t('cat_lcd', 'LCD Panels'), icon: Tv, pricePerKg: dynamicRates.lcd, group: 'specialized' },
-    { id: 'pcb', name: t('cat_pcb', 'Circuit Boards'), icon: Cpu, pricePerKg: dynamicRates.pcb, group: 'specialized' },
-    { id: 'cables', name: t('cat_cables', 'Cables'), icon: Plug, pricePerKg: dynamicRates.cables, group: 'specialized' },
-    { id: 'batteries', name: t('cat_batteries', 'Batteries'), icon: Battery, pricePerKg: dynamicRates.batteries, group: 'specialized' },
-    { id: 'motors', name: t('cat_motors', 'Motors'), icon: Zap, pricePerKg: dynamicRates.motors, group: 'specialized' },
-    { id: 'plastics', name: t('cat_plastics', 'Mixed Plastics'), icon: Recycle, pricePerKg: dynamicRates.plastics, group: 'nonBiodegradable' },
+    { id: 'crt', name: t('cat_crt', 'CRTs'), icon: Monitor, pricePerKg: dynamicRates?.crt || 10, group: 'specialized' },
+    { id: 'lcd', name: t('cat_lcd', 'LCD Panels'), icon: Tv, pricePerKg: dynamicRates?.lcd || 40, group: 'specialized' },
+    { id: 'pcb', name: t('cat_pcb', 'Circuit Boards'), icon: Cpu, pricePerKg: dynamicRates?.pcb || 150, group: 'specialized' },
+    { id: 'cables', name: t('cat_cables', 'Cables'), icon: Plug, pricePerKg: dynamicRates?.cables || 80, group: 'specialized' },
+    { id: 'batteries', name: t('cat_batteries', 'Batteries'), icon: Battery, pricePerKg: dynamicRates?.batteries || 60, group: 'specialized' },
+    { id: 'motors', name: t('cat_motors', 'Motors'), icon: Zap, pricePerKg: dynamicRates?.motors || 45, group: 'specialized' },
+    { id: 'plastics', name: t('cat_plastics', 'Mixed Plastics'), icon: Recycle, pricePerKg: dynamicRates?.plastics || 15, group: 'nonBiodegradable' },
   ];
 
   const speakAudio = (e, text) => {
     e.stopPropagation(); 
-    if (!('speechSynthesis' in window)) return alert("Audio not supported.");
+    if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     if (isSpeaking) { setIsSpeaking(false); return; }
     const cleanText = text.replace(/[.,/#!$%^&*;:{}=\-_`~()।]/g, " ");
@@ -266,6 +278,7 @@ function CitizenPortal() {
   const isFormComplete = name.trim() !== "" && phone.trim() !== "" && photos.length > 0 && selectedRecyclers.length > 0 && (paymentMethod === 'cash' || upiId.trim() !== "");
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
     const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -326,29 +339,65 @@ function CitizenPortal() {
       hasPhoto: photos.length > 0, photos 
     };
 
-    const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    localStorage.setItem('scrapup_requests', JSON.stringify([newBooking, ...existing]));
+    try {
+      const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      localStorage.setItem('scrapup_requests', JSON.stringify([newBooking, ...(Array.isArray(existing) ? existing : [])]));
+    } catch (e) {
+      localStorage.setItem('scrapup_requests', JSON.stringify([newBooking]));
+    }
     
+    // Eco-Warrior Points Update
+    const earnedPts = Math.floor((totalWeight * 1.5) * 10);
+    const newTotal = myPoints + earnedPts;
+    setMyPoints(newTotal);
+    localStorage.setItem('scrapup_points', newTotal.toString());
+
     setWeights({}); setPhotos([]); setStep(1); setSelectedRecyclers([]); setPaymentMethod('cash'); setUpiId("");
     setActiveTab('pending');
   };
 
   const handleCancelRequest = (id) => {
-    const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    localStorage.setItem('scrapup_requests', JSON.stringify(existing.filter(req => req.id !== id)));
-    setPendingRequests(prev => prev.filter(req => req.id !== id));
+    try {
+      const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      const filtered = Array.isArray(existing) ? existing.filter(req => req.id !== id) : [];
+      localStorage.setItem('scrapup_requests', JSON.stringify(filtered));
+      setPendingRequests(filtered);
+    } catch(e) {}
   };
 
   const handleMarkDelivered = (req) => {
-    const requests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
-    
-    const completedLot = { ...req, status: 'Verified', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
-    localStorage.setItem('scrapup_history', JSON.stringify([completedLot, ...history]));
-    localStorage.setItem('scrapup_requests', JSON.stringify(requests.filter(r => r.id !== req.id)));
-    
-    setActiveTab('sells');
+    try {
+      const requests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
+      
+      const completedLot = { ...req, status: 'Verified', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+      localStorage.setItem('scrapup_history', JSON.stringify([completedLot, ...(Array.isArray(history) ? history : [])]));
+      localStorage.setItem('scrapup_requests', JSON.stringify(Array.isArray(requests) ? requests.filter(r => r.id !== req.id) : []));
+      
+      setActiveTab('sells');
+    } catch (e) {}
   };
+
+  // Eco-Warrior Logic
+  const lifetimeCO2 = (myPoints / 10).toFixed(1);
+  const getTier = () => {
+    if (myPoints >= 5000) return { name: "Platinum", color: "bg-slate-800", text: "text-slate-200" };
+    if (myPoints >= 3000) return { name: "Gold", color: "bg-yellow-500", text: "text-yellow-100" };
+    if (myPoints >= 1000) return { name: "Silver", color: "bg-gray-400", text: "text-gray-100" };
+    return { name: "Bronze", color: "bg-amber-700", text: "text-amber-100" };
+  };
+  const tier = getTier();
+  const nextTierPts = myPoints >= 5000 ? 5000 : myPoints >= 3000 ? 5000 : myPoints >= 1000 ? 3000 : 1000;
+  const progressPercent = Math.min(100, (myPoints / nextTierPts) * 100);
+
+  const mockLeaderboard = [
+    { name: "Priyadarshini Mazumder", pts: 8450 },
+    { name: "Tathagata Das", pts: 6200 },
+    { name: name || "Arka Pal", pts: myPoints },
+    { name: "Anup Kumar Majhi", pts: 3400 },
+    { name: "Aniket Ghosh", pts: 1700 },
+    { name: "Niloy Banik", pts: 850 }
+  ].sort((a, b) => b.pts - a.pts);
 
   const renderCategoryGroup = (groupKey, groupTitleKey, fallbackTitle) => {
     const groupItems = categories.filter(c => c.group === groupKey);
@@ -386,7 +435,7 @@ function CitizenPortal() {
       </nav>
 
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm overflow-x-auto">
-        <div className="max-w-md mx-auto flex w-[500px] sm:w-full">
+        <div className="max-w-md mx-auto flex w-[600px] sm:w-full">
           <button onClick={() => setActiveTab('new')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'new' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <Plus className="w-4 h-4 mx-auto mb-1" /> {t('tabNew', 'New Lot')}
           </button>
@@ -399,10 +448,87 @@ function CitizenPortal() {
           <button onClick={() => setActiveTab('directory')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'directory' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <Map className="w-4 h-4 mx-auto mb-1" /> {t('tabDirectory', 'Recyclers')}
           </button>
+          <button onClick={() => setActiveTab('eco')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'eco' ? 'border-yellow-500 text-yellow-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            <Trophy className="w-4 h-4 mx-auto mb-1" /> {t('tabEcoWarrior', 'Rewards')}
+          </button>
         </div>
       </div>
       
       <main className="max-w-md mx-auto mt-4 p-4">
+        
+        {/* NEW TAB: ECO-WARRIOR REWARDS */}
+        {activeTab === 'eco' && (
+          <div className="space-y-4">
+            <div className={`p-6 rounded-xl shadow-lg border-2 border-white/20 ${tier.color} ${tier.text} relative overflow-hidden`}>
+              <div className="absolute -right-4 -top-4 opacity-20"><Medal className="w-32 h-32" /></div>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-80">{t('ecoTitle', 'Eco-Warrior Dashboard')}</h2>
+              <div className="flex items-end gap-3 mb-4">
+                <h3 className="text-5xl font-black">{myPoints.toLocaleString()}</h3>
+                <span className="text-lg font-semibold pb-1">pts</span>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex justify-between text-xs font-bold mb-1 opacity-90">
+                  <span>{tier.name} Tier</span>
+                  <span>{myPoints >= 5000 ? 'Max Level' : `${nextTierPts} pts`}</span>
+                </div>
+                <div className="w-full bg-black/20 rounded-full h-2.5">
+                  <div className="bg-white h-2.5 rounded-full" style={{ width: `${progressPercent}%` }}></div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/20 flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-semibold uppercase opacity-80">{t('lifetimeImpact', 'Lifetime Impact')}</p>
+                  <p className="text-xl font-bold flex items-center gap-1"><Recycle className="w-4 h-4"/> {lifetimeCO2} kg <span className="text-sm font-normal">{t('co2Prevented', 'CO₂ Prevented')}</span></p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 text-center">
+              <Award className={`w-12 h-12 mx-auto mb-2 ${myPoints >= 3000 ? 'text-green-600' : 'text-gray-300'}`} />
+              <h3 className="font-bold text-gray-800">{t('unlockCertificate', 'Official EPR Certificate')}</h3>
+              
+              {myPoints >= 3000 ? (
+                <>
+                  <p className="text-xs text-gray-500 mt-1 mb-4">You have achieved verified sustainability status!</p>
+                  <button onClick={() => setShowCertificate(true)} className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2">
+                    <Star className="w-4 h-4" /> {t('viewCert', 'View Certificate')}
+                  </button>
+                </>
+              ) : (
+                <div className="mt-3 py-2 bg-gray-100 rounded-lg text-gray-500 font-semibold text-sm border border-gray-200 flex items-center justify-center gap-2">
+                  <Lock className="w-4 h-4" /> {t('certLocked', 'Unlock at 3000 pts')}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-yellow-50 p-4 border-b border-yellow-100 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-600" />
+                <h3 className="font-bold text-yellow-800">{t('leaderboard', 'City Leaderboard')}</h3>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {mockLeaderboard.map((user, idx) => {
+                  const isMe = user.name === (name || "Arka Pal");
+                  return (
+                    <div key={idx} className={`p-4 flex items-center justify-between ${isMe ? 'bg-green-50/50' : ''}`}>
+                      <div className="flex items-center gap-3">
+                        <span className={`w-6 text-center font-black ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-700' : 'text-gray-300'}`}>
+                          #{idx + 1}
+                        </span>
+                        <span className={`font-semibold ${isMe ? 'text-green-700' : 'text-gray-700'}`}>{user.name} {isMe && '(You)'}</span>
+                      </div>
+                      <span className="font-black text-gray-800">{user.pts.toLocaleString()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: NEW LOT */}
         {activeTab === 'new' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 relative overflow-hidden p-4">
             {step === 1 && (
@@ -431,7 +557,7 @@ function CitizenPortal() {
                         const cat = categories.find(c => c.id === id);
                         return (
                           <div key={id} className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-green-100">
-                            <span className="text-sm font-semibold text-gray-700 flex-1">{cat.name}</span>
+                            <span className="text-sm font-semibold text-gray-700 flex-1">{cat?.name || "Item"}</span>
                             <div className="flex items-center gap-3">
                               <button onClick={() => updateWeight(id, -1)} className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 text-gray-600"><Minus className="w-4 h-4" /></button>
                               <span className="w-6 text-center font-bold text-sm text-gray-800">{weight}</span>
@@ -507,7 +633,7 @@ function CitizenPortal() {
                           }} className="w-4 h-4 text-green-600 rounded focus:ring-green-500" />
                           <div className="flex-1">
                             <h4 className="font-bold text-gray-800 text-sm">{r.name}</h4>
-                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3"/> {r.address.split(',')[0]}</p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3"/> {(r.address || "").split(',')[0]}</p>
                           </div>
                         </label>
                       ))}
@@ -597,14 +723,13 @@ function CitizenPortal() {
                             <h4 className="font-bold text-gray-800 text-lg">{req.acceptedBy.name}</h4>
                             <p className="text-sm text-gray-600 mt-1 flex items-start gap-1"><MapPin className="w-4 h-4 mt-0.5 shrink-0"/> {req.acceptedBy.address}</p>
                             <p className="text-sm text-gray-600 mt-1 flex items-start gap-1"><Clock className="w-4 h-4 mt-0.5 shrink-0"/> <span className="font-semibold">{t('workingHours', 'Working Hours')}:</span> {req.acceptedBy.workingHours}</p>
-                            
                             <a href={`tel:${req.acceptedBy.phone}`} className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 font-bold rounded-md hover:bg-green-200 transition-colors">
                               <Phone className="w-4 h-4" /> {t('call', 'Call')} {req.acceptedBy.phone}
                             </a>
                           </div>
                         )}
                         
-                        {req.acceptedBy && (
+                        {req.acceptedBy && req.acceptedBy.lat && req.acceptedBy.lon && (
                           <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-green-200 mb-4">
                             <iframe width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${req.acceptedBy.lon-0.02}%2C${req.acceptedBy.lat-0.02}%2C${req.acceptedBy.lon+0.02}%2C${req.acceptedBy.lat+0.02}&layer=mapnik&marker=${req.acceptedBy.lat}%2C${req.acceptedBy.lon}`}></iframe>
                           </div>
@@ -657,11 +782,9 @@ function CitizenPortal() {
                 <h4 className="font-black text-gray-800 text-lg">{recycler.name}</h4>
                 <p className="text-sm text-gray-500 mt-1 flex items-start gap-1"><MapPin className="w-4 h-4 mt-0.5 shrink-0"/> {recycler.address}</p>
                 <p className="text-sm text-gray-500 mt-1 flex items-start gap-1"><Clock className="w-4 h-4 mt-0.5 shrink-0"/> <span className="font-semibold">{t('workingHours', 'Working Hours')}:</span> {recycler.workingHours}</p>
-                
                 <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 mt-3 mb-3">
                   <iframe width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${recycler.lon-0.02}%2C${recycler.lat-0.02}%2C${recycler.lon+0.02}%2C${recycler.lat+0.02}&layer=mapnik&marker=${recycler.lat}%2C${recycler.lon}`}></iframe>
                 </div>
-
                 <a href={`tel:${recycler.phone}`} className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition-colors">
                   <Phone className="w-4 h-4" /> {t('call', 'Call')} {recycler.phone}
                 </a>
@@ -669,10 +792,49 @@ function CitizenPortal() {
             ))}
           </div>
         )}
-
       </main>
 
-      {selectedImage && (
+      {/* FULL SCREEN OFFICIAL CERTIFICATE MODAL */}
+      {showCertificate && (
+        <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full rounded-none border-8 border-double border-yellow-600 p-8 text-center relative bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')]">
+            <button onClick={() => setShowCertificate(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800"><X className="w-6 h-6"/></button>
+            
+            <div className="w-20 h-20 mx-auto bg-green-50 border-2 border-green-700 rounded-full flex items-center justify-center mb-4 shadow-sm">
+              <ShieldCheck className="w-10 h-10 text-green-700" />
+            </div>
+            
+            <h2 className="text-xl font-bold text-gray-800 tracking-widest uppercase mb-1">Central Pollution Control Board</h2>
+            <p className="text-sm font-semibold text-green-700 mb-6 uppercase tracking-wider">EPR Compliance & Sustainability Award</p>
+            
+            <p className="text-gray-500 italic mb-2">This certificate is proudly presented to</p>
+            <h1 className="text-4xl font-black text-gray-900 font-serif mb-6 border-b border-gray-300 pb-2 inline-block px-8">{name || "Arka Pal"}</h1>
+            
+            <p className="text-sm text-gray-600 leading-relaxed max-w-xs mx-auto mb-8">
+              In recognition of your exceptional dedication to environmental sustainability. By formalizing e-waste collection, you have officially prevented <b>{lifetimeCO2} kg of CO₂ emissions</b> and contributed to a greener India.
+            </p>
+
+            <div className="flex justify-between items-end px-4 mt-8">
+              <div className="text-left border-t border-gray-400 pt-2 w-24">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Date</p>
+                <p className="text-xs font-semibold text-gray-800">{new Date().toLocaleDateString()}</p>
+              </div>
+              <Award className="w-16 h-16 text-yellow-500 opacity-80" />
+              <div className="text-right border-t border-gray-400 pt-2 w-24">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Auth ID</p>
+                <p className="text-xs font-mono font-semibold text-gray-800">EPR-{Math.floor(Math.random()*9000)+1000}</p>
+              </div>
+            </div>
+
+            <button className="mt-8 mx-auto flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">
+              <Share2 className="w-4 h-4" /> Share Achievement
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && !showCertificate && (
         <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
           <button className="absolute top-4 right-4 text-white hover:text-gray-300"><X className="w-8 h-8" /></button>
           <img src={selectedImage} alt="Expanded" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
@@ -698,39 +860,53 @@ function KabadiwalaPortal() {
   const [dynamicRates, setDynamicRates] = useState(DEFAULT_RATES);
 
   useEffect(() => {
-    const loggedInId = localStorage.getItem('logged_in_recycler') || 'r1';
-    const savedRecyclers = localStorage.getItem('scrapup_recyclers');
-    const directory = savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS;
-    const profile = directory.find(r => r.id === loggedInId);
-    setMyIdentity(profile);
+    try {
+      const loggedInId = localStorage.getItem('logged_in_recycler') || 'r1';
+      const savedRecyclers = localStorage.getItem('scrapup_recyclers');
+      const directory = savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS;
+      const profile = directory.find(r => r.id === loggedInId) || INITIAL_RECYCLERS[0];
+      setMyIdentity(profile);
+    } catch (e) {
+      setMyIdentity(INITIAL_RECYCLERS[0]);
+    }
   }, []);
 
   const categories = [
-    { id: 'crt', name: t('cat_crt', 'CRTs'), icon: Monitor, pricePerKg: dynamicRates.crt },
-    { id: 'lcd', name: t('cat_lcd', 'LCD Panels'), icon: Tv, pricePerKg: dynamicRates.lcd },
-    { id: 'pcb', name: t('cat_pcb', 'Circuit Boards'), icon: Cpu, pricePerKg: dynamicRates.pcb },
-    { id: 'cables', name: t('cat_cables', 'Cables'), icon: Plug, pricePerKg: dynamicRates.cables },
-    { id: 'batteries', name: t('cat_batteries', 'Batteries'), icon: Battery, pricePerKg: dynamicRates.batteries },
-    { id: 'motors', name: t('cat_motors', 'Motors'), icon: Zap, pricePerKg: dynamicRates.motors },
-    { id: 'plastics', name: t('cat_plastics', 'Mixed Plastics'), icon: Recycle, pricePerKg: dynamicRates.plastics },
+    { id: 'crt', name: t('cat_crt', 'CRTs'), icon: Monitor, pricePerKg: dynamicRates?.crt || 10 },
+    { id: 'lcd', name: t('cat_lcd', 'LCD Panels'), icon: Tv, pricePerKg: dynamicRates?.lcd || 40 },
+    { id: 'pcb', name: t('cat_pcb', 'Circuit Boards'), icon: Cpu, pricePerKg: dynamicRates?.pcb || 150 },
+    { id: 'cables', name: t('cat_cables', 'Cables'), icon: Plug, pricePerKg: dynamicRates?.cables || 80 },
+    { id: 'batteries', name: t('cat_batteries', 'Batteries'), icon: Battery, pricePerKg: dynamicRates?.batteries || 60 },
+    { id: 'motors', name: t('cat_motors', 'Motors'), icon: Zap, pricePerKg: dynamicRates?.motors || 45 },
+    { id: 'plastics', name: t('cat_plastics', 'Mixed Plastics'), icon: Recycle, pricePerKg: dynamicRates?.plastics || 15 },
   ];
 
   useEffect(() => {
     if (!myIdentity) return;
     const loadData = () => {
-      const savedRates = localStorage.getItem('scrapup_rates');
-      if (savedRates) setDynamicRates(JSON.parse(savedRates));
+      try {
+        const savedRates = localStorage.getItem('scrapup_rates');
+        if (savedRates) setDynamicRates(JSON.parse(savedRates) || DEFAULT_RATES);
 
-      const allRequests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-      const targetedLots = allRequests.filter(req => req.status === 'Pending' && req.targetRecyclers?.includes(myIdentity.id));
-      const acceptedLots = allRequests.filter(req => req.status === 'Accepted' && req.acceptedBy?.id === myIdentity.id);
-      
-      const historyData = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
-      const myHistory = historyData.filter(buy => buy.acceptedBy?.id === myIdentity.id);
-
-      setFeedRequests(targetedLots);
-      setAcceptedRequests(acceptedLots);
-      setMyBuys(myHistory);
+        const allRequests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+        if (Array.isArray(allRequests)) {
+          const targetedLots = allRequests.filter(req => req.status === 'Pending' && req.targetRecyclers?.includes(myIdentity.id));
+          const acceptedLots = allRequests.filter(req => req.status === 'Accepted' && req.acceptedBy?.id === myIdentity.id);
+          setFeedRequests(targetedLots);
+          setAcceptedRequests(acceptedLots);
+        } else {
+          setFeedRequests([]); setAcceptedRequests([]);
+        }
+        
+        const historyData = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
+        if (Array.isArray(historyData)) {
+          setMyBuys(historyData.filter(buy => buy.acceptedBy?.id === myIdentity.id));
+        } else {
+          setMyBuys([]);
+        }
+      } catch (e) {
+        setFeedRequests([]); setAcceptedRequests([]); setMyBuys([]);
+      }
     };
     loadData();
     const interval = setInterval(loadData, 1500); 
@@ -738,31 +914,40 @@ function KabadiwalaPortal() {
   }, [myIdentity]);
 
   const handleDecline = (id) => {
-    const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    localStorage.setItem('scrapup_requests', JSON.stringify(existing.filter(req => req.id !== id)));
-    setFeedRequests(prev => prev.filter(req => req.id !== id));
+    try {
+      const existing = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      if (Array.isArray(existing)) {
+        localStorage.setItem('scrapup_requests', JSON.stringify(existing.filter(req => req.id !== id)));
+        setFeedRequests(prev => prev.filter(req => req.id !== id));
+      }
+    } catch(e) {}
   };
 
   const handleAcceptLot = (req) => {
-    const allRequests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    const updatedRequests = allRequests.map(r => {
-      if (r.id === req.id) {
-        return { ...r, status: 'Accepted', acceptedBy: myIdentity };
+    try {
+      const allRequests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      if (Array.isArray(allRequests)) {
+        const updatedRequests = allRequests.map(r => {
+          if (r.id === req.id) return { ...r, status: 'Accepted', acceptedBy: myIdentity };
+          return r;
+        });
+        localStorage.setItem('scrapup_requests', JSON.stringify(updatedRequests));
+        setActiveTab('pending');
       }
-      return r;
-    });
-    
-    localStorage.setItem('scrapup_requests', JSON.stringify(updatedRequests));
-    setActiveTab('pending');
+    } catch(e) {}
   };
 
   const handleConfirmHandover = (req) => {
-    const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
-    const completedLot = { ...req, status: 'Verified', acceptedBy: myIdentity, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
-    localStorage.setItem('scrapup_history', JSON.stringify([completedLot, ...history]));
+    try {
+      const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
+      const completedLot = { ...req, status: 'Verified', acceptedBy: myIdentity, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+      localStorage.setItem('scrapup_history', JSON.stringify([completedLot, ...(Array.isArray(history) ? history : [])]));
 
-    const requests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
-    localStorage.setItem('scrapup_requests', JSON.stringify(requests.filter(r => r.id !== req.id)));
+      const requests = JSON.parse(localStorage.getItem('scrapup_requests') || '[]');
+      if (Array.isArray(requests)) {
+        localStorage.setItem('scrapup_requests', JSON.stringify(requests.filter(r => r.id !== req.id)));
+      }
+    } catch(e) {}
   };
 
   if (!myIdentity) return null; 
@@ -782,16 +967,16 @@ function KabadiwalaPortal() {
 
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm overflow-x-auto">
         <div className="max-w-md mx-auto flex w-[500px] sm:w-full">
-          <button onClick={() => {setActiveTab('live');}} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'live' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button onClick={() => setActiveTab('live')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'live' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <Navigation className="w-4 h-4 mx-auto mb-1" /> {t('tabLive', 'Live Lots')}
           </button>
-          <button onClick={() => {setActiveTab('pending');}} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'pending' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button onClick={() => setActiveTab('pending')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'pending' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <Clock className="w-4 h-4 mx-auto mb-1" /> {t('tabRecyclerPending', 'Pending')}
           </button>
-          <button onClick={() => {setActiveTab('buys');}} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'buys' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button onClick={() => setActiveTab('buys')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'buys' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <History className="w-4 h-4 mx-auto mb-1" /> {t('tabBuys', 'My Buys')}
           </button>
-          <button onClick={() => {setActiveTab('prices');}} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'prices' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          <button onClick={() => setActiveTab('prices')} className={`flex-1 py-4 text-xs font-bold text-center border-b-2 transition-colors ${activeTab === 'prices' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <IndianRupee className="w-4 h-4 mx-auto mb-1" /> {t('tabPrices', 'Price Board')}
           </button>
         </div>
@@ -802,7 +987,7 @@ function KabadiwalaPortal() {
         {activeTab === 'live' && (
           <div className="space-y-4">
             <div className="w-full h-48 bg-gray-100 rounded-xl overflow-hidden border border-orange-200 shadow-sm relative">
-              <iframe width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${myIdentity.lon-0.05}%2C${myIdentity.lat-0.05}%2C${myIdentity.lon+0.05}%2C${myIdentity.lat+0.05}&layer=mapnik&marker=${myIdentity.lat}%2C${myIdentity.lon}`}></iframe>
+              <iframe width="100%" height="100%" frameBorder="0" scrolling="no" src={`https://www.openstreetmap.org/export/embed.html?bbox=${myIdentity.lon-0.05}%2C${myIdentity.lat-0.05}%2C${myIdentity.lon+0.05}%2C${myIdentity.lat+0.05}&layer=mapnik&marker=${myIdentity.lat}%2C${myIdentity.lon}`}></iframe>
             </div>
 
             {feedRequests.length === 0 ? <p className="text-center text-gray-500 py-8 bg-white rounded-xl border border-dashed border-gray-300">{t('noRequests', 'No pending lots.')}</p> : feedRequests.map(req => (
@@ -982,45 +1167,53 @@ function AdminDashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const [adminStats, setAdminStats] = useState({
-    kg: 1240, collectors: 42, pending: 18, disbursed: 14500,
-    logs: []
+    kg: 1240, collectors: 42, pending: 18, disbursed: 14500, logs: []
   });
 
   useEffect(() => {
-    const savedType = localStorage.getItem('logged_in_admin_type') || 'regulator';
-    setAdminType(savedType);
+    try {
+      const savedType = localStorage.getItem('logged_in_admin_type') || 'regulator';
+      setAdminType(savedType);
 
-    const savedRecyclers = localStorage.getItem('scrapup_recyclers');
-    setRecyclersList(savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS);
+      const savedRecyclers = localStorage.getItem('scrapup_recyclers');
+      setRecyclersList(savedRecyclers ? JSON.parse(savedRecyclers) : INITIAL_RECYCLERS);
 
-    const savedRates = localStorage.getItem('scrapup_rates');
-    setRates(savedRates ? JSON.parse(savedRates) : DEFAULT_RATES);
+      const savedRates = localStorage.getItem('scrapup_rates');
+      setRates(savedRates ? JSON.parse(savedRates) : DEFAULT_RATES);
+    } catch(e) {
+      setRecyclersList(INITIAL_RECYCLERS);
+      setRates(DEFAULT_RATES);
+    }
   }, []);
 
   useEffect(() => {
     const calculateLiveStats = () => {
-      const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
-      const extraKg = history.reduce((sum, lot) => sum + (lot.rawWeight || 0), 0);
-      const extraValue = history.reduce((sum, lot) => sum + (lot.rawValue || 0), 0);
-      
-      const newLogs = history.slice(0, 15).map(lot => ({
-        id: `LOT-${lot.id}`,
-        user: lot.name,
-        phone: lot.phone,
-        status: 'Verified',
-        time: lot.time,
-        scrap: lot.scrap,
-        estValue: lot.estValue,
-        paymentMethod: lot.paymentMethod,
-        photos: lot.photos || [],
-        recyclerName: lot.acceptedBy ? lot.acceptedBy.name : 'Unknown Recycler'
-      }));
+      try {
+        const history = JSON.parse(localStorage.getItem('scrapup_history') || '[]');
+        if(!Array.isArray(history)) return;
 
-      setAdminStats({
-        kg: 1240 + extraKg, collectors: 42 + history.length, 
-        pending: Math.max(0, 18 - history.length), disbursed: 14500 + extraValue,
-        logs: newLogs 
-      });
+        const extraKg = history.reduce((sum, lot) => sum + (lot.rawWeight || 0), 0);
+        const extraValue = history.reduce((sum, lot) => sum + (lot.rawValue || 0), 0);
+        
+        const newLogs = history.slice(0, 15).map(lot => ({
+          id: `LOT-${lot.id}`,
+          user: lot.name,
+          phone: lot.phone,
+          status: 'Verified',
+          time: lot.time,
+          scrap: lot.scrap,
+          estValue: lot.estValue,
+          paymentMethod: lot.paymentMethod,
+          photos: lot.photos || [],
+          recyclerName: lot.acceptedBy ? lot.acceptedBy.name : 'Unknown Recycler'
+        }));
+
+        setAdminStats({
+          kg: 1240 + extraKg, collectors: 42 + history.length, 
+          pending: Math.max(0, 18 - history.length), disbursed: 14500 + extraValue,
+          logs: newLogs 
+        });
+      } catch (e) {}
     };
 
     calculateLiveStats();
@@ -1090,8 +1283,9 @@ function AdminDashboard() {
         var hubs = ${JSON.stringify(hubs)};
         
         hubs.forEach(function(hub) {
+          if (!hub.lat || !hub.lon) return;
           var marker = L.marker([hub.lat, hub.lon]).addTo(map);
-          marker.bindPopup("<div style='text-align:center;'><b>" + hub.name + "</b><br/><span style='font-size:11px;color:#6b7280;'>" + hub.address.split(',')[0] + "</span><br/><span style='font-size:10px;color:#16a34a;'>Working: " + (hub.workingHours || "9 AM - 6 PM") + "</span></div>", { className: 'custom-popup' });
+          marker.bindPopup("<div style='text-align:center;'><b>" + hub.name + "</b><br/><span style='font-size:11px;color:#6b7280;'>" + (hub.address || "").split(',')[0] + "</span><br/><span style='font-size:10px;color:#16a34a;'>Working: " + (hub.workingHours || "9 AM - 6 PM") + "</span></div>", { className: 'custom-popup' });
         });
       </script>
     </body>
@@ -1135,13 +1329,12 @@ function AdminDashboard() {
                 CPCB Scrap Price Fixing
               </button>
               <button onClick={() => setAdminSection('recyclers')} className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-colors shrink-0 ${adminSection === 'recyclers' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
-                Manage Recyclers ({recyclersList.filter(r => r.authorized !== false).length})
+                Manage Recyclers ({recyclersList.filter(r => r?.authorized !== false).length})
               </button>
             </>
           ) : (
-            /* BRAND & PRO: READ-ONLY DIRECTORY TAB */
             <button onClick={() => setAdminSection('recyclers')} className={`py-3.5 px-6 font-bold text-sm border-b-2 transition-colors shrink-0 ${adminSection === 'recyclers' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
-              Authorized Recyclers ({recyclersList.filter(r => r.authorized !== false).length})
+              Authorized Recyclers ({recyclersList.filter(r => r?.authorized !== false).length})
             </button>
           )}
 
@@ -1293,7 +1486,6 @@ function AdminDashboard() {
         {/* SECTION 3: RECYCLER REGISTRY & AUTHORIZATION */}
         {adminSection === 'recyclers' && (
           adminType === 'regulator' ? (
-            /* 1. REGULATOR MANAGEMENT VIEW */
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
@@ -1343,7 +1535,6 @@ function AdminDashboard() {
               </div>
             </div>
           ) : (
-            /* 2. BRAND PRODUCER & PRO: COLLECTOR-STYLE READ-ONLY DIRECTORY */
             <div className="space-y-4 max-w-4xl mx-auto">
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -1351,12 +1542,12 @@ function AdminDashboard() {
                   <p className="text-xs text-gray-500 mt-0.5">Licensed partner facilities available for EPR fulfillment contracts.</p>
                 </div>
                 <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full">
-                  {recyclersList.filter(r => r.authorized !== false).length} Verified Facilities
+                  {recyclersList.filter(r => r?.authorized !== false).length} Verified Facilities
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recyclersList.filter(r => r.authorized !== false).map((recycler, i) => (
+                {recyclersList.filter(r => r?.authorized !== false).map((recycler, i) => (
                   <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-1">
@@ -1373,17 +1564,17 @@ function AdminDashboard() {
                         <span className="font-semibold text-gray-700">Working Hours:</span> {recycler.workingHours || "9:00 AM - 6:00 PM"}
                       </p>
                       
-                      <div className="w-full h-36 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 mt-3 mb-3">
-                        <iframe 
-                          width="100%" 
-                          height="100%" 
-                          frameBorder="0" 
-                          scrolling="no" 
-                          marginHeight="0" 
-                          marginWidth="0" 
-                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${recycler.lon-0.02}%2C${recycler.lat-0.02}%2C${recycler.lon+0.02}%2C${recycler.lat+0.02}&layer=mapnik&marker=${recycler.lat}%2C${recycler.lon}`}
-                        ></iframe>
-                      </div>
+                      {recycler.lat && recycler.lon && (
+                        <div className="w-full h-36 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 mt-3 mb-3">
+                          <iframe 
+                            width="100%" 
+                            height="100%" 
+                            frameBorder="0" 
+                            scrolling="no" 
+                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${recycler.lon-0.02}%2C${recycler.lat-0.02}%2C${recycler.lon+0.02}%2C${recycler.lat+0.02}&layer=mapnik&marker=${recycler.lat}%2C${recycler.lon}`}
+                          ></iframe>
+                        </div>
+                      )}
                     </div>
 
                     <a 
@@ -1408,7 +1599,7 @@ function AdminDashboard() {
                 <p className="text-xs text-gray-500">Live monitoring of all licensed facilities across the Greater Kolkata Metropolitan Area.</p>
               </div>
               <span className="text-xs font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
-                {recyclersList.filter(r => r.authorized !== false).length} Active Hubs
+                {recyclersList.filter(r => r?.authorized !== false).length} Active Hubs
               </span>
             </div>
 
@@ -1418,20 +1609,20 @@ function AdminDashboard() {
                 height="100%" 
                 frameBorder="0" 
                 scrolling="no" 
-                srcDoc={generateMapHTML(recyclersList.filter(r => r.authorized !== false))}
+                srcDoc={generateMapHTML(recyclersList.filter(r => r?.authorized !== false))}
               ></iframe>
             </div>
 
             <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Facility Coordinates & Zone Status</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {recyclersList.filter(r => r.authorized !== false).map((r, i) => (
+              {recyclersList.filter(r => r?.authorized !== false).map((r, i) => (
                 <div key={i} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center">
                   <div>
                     <h5 className="font-bold text-sm text-gray-800">{r.name}</h5>
-                    <p className="text-xs text-gray-500">{r.address.split(',')[0]}</p>
+                    <p className="text-xs text-gray-500">{(r.address || "").split(',')[0]}</p>
                   </div>
                   <span className="text-xs font-bold font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100">
-                    {r.lat.toFixed(2)}, {r.lon.toFixed(2)}
+                    {r.lat?.toFixed(2)}, {r.lon?.toFixed(2)}
                   </span>
                 </div>
               ))}

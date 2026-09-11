@@ -17,12 +17,13 @@ const resources = {
       "safetyWarningFull": "Safety Warning: Do not burn cables or break open batteries. Hand them safely to authorized recyclers to protect your health.",
       "bookPickup": "Log E-Waste", "selectScrap": "Select materials to estimate value", "estWeight": "Estimated Weight (kg)", "totalValue": "Total Value:", "nextStep": "Next Step", "selectScrapBtn": "Select Materials",
       "personalDetails": "Lot Details", "fullName": "Name", "mobileNumber": "Phone", "addPhoto": "Upload Photo", "btnCamera": "Camera", "btnGallery": "Gallery", "schedulePickup": "Submit Lot", "fillDetailsBtn": "Fill Details & Photo", 
-      "tabNew": "New Lot", "tabPending": "Pending", "tabSells": "My Sells", "tabDirectory": "Recyclers", "tabRecyclerPending": "Pending",
+      "tabNew": "New Lot", "tabPending": "Pending", "tabSells": "My Sells", "tabDirectory": "Recyclers", "tabRecyclerPending": "Pending", "tabEcoWarrior": "Rewards",
       "waitingRecycler": "Waiting for a recycler to accept...", "deliverTo": "Accepted! Please deliver to:", "call": "Call",
       "tabLive": "Live Lots", "tabBuys": "My Buys", "tabPrices": "Price Board", "liveRequests": "Live Lots Near You", "noRequests": "No pending lots.", "decline": "Decline", "accept": "Accept Lot", "activeRoute": "Active Handover", "markBought": "Mark as Bought",
       "statFormalized": "Formalized E-Waste", "statCollectors": "Registered Collectors", "statPending": "Pending Traceability", "statValue": "Value Disbursed", "chartTitle": "Weekly EPR Category Tracking (kg)", "logsTitle": "Live Verification Logs", "mapTitle": "Live Recycler Fleet Routing",
       "paymentMethod": "Payment Method", "cash": "Cash", "upi": "UPI", "upiIdPlaceholder": "Enter UPI ID", "selectRecyclers": "Select Target Recyclers", "selectAll": "Select All", "findNearest": "Find Nearest (GPS)", "markDelivered": "Mark as Delivered", "paymentPref": "Payment Pref",
-      "cancelRequest": "Cancel Request", "workingHours": "Working Hours"
+      "cancelRequest": "Cancel Request", "workingHours": "Working Hours",
+      "ecoTitle": "Eco-Warrior Dashboard", "lifetimeImpact": "Lifetime Impact", "co2Prevented": "CO₂ Prevented", "leaderboard": "City Leaderboard", "unlockCertificate": "Official EPR Certificate", "certLocked": "Unlock at 3000 pts", "viewCert": "View Certificate", "rank": "Rank", "points": "Points"
     }
   },
   hi: {
@@ -40,12 +41,13 @@ const resources = {
       "safetyWarningFull": "सुरक्षा चेतावनी: केबल न जलाएं या बैटरी न तोड़ें। अपने स्वास्थ्य की रक्षा के लिए इन्हें अधिकृत रीसाइक्लर्स को ही सौंपें।",
       "bookPickup": "ई-कचरा दर्ज करें", "selectScrap": "मूल्य का अनुमान लगाने के लिए सामग्री चुनें", "estWeight": "अनुमानित वजन (किलो)", "totalValue": "कुल मूल्य:", "nextStep": "अगला कदम", "selectScrapBtn": "सामग्री चुनें",
       "personalDetails": "लॉट विवरण", "fullName": "नाम", "mobileNumber": "फोन नंबर", "addPhoto": "फोटो अपलोड करें", "btnCamera": "कैमरा", "btnGallery": "गैलरी", "schedulePickup": "लॉट जमा करें", "fillDetailsBtn": "विवरण और फोटो भरें", 
-      "tabNew": "नया लॉट", "tabPending": "लंबित", "tabSells": "मेरी बिक्री", "tabDirectory": "रीसाइक्लर", "tabRecyclerPending": "लंबित",
+      "tabNew": "नया लॉट", "tabPending": "लंबित", "tabSells": "मेरी बिक्री", "tabDirectory": "रीसाइक्लर", "tabRecyclerPending": "लंबित", "tabEcoWarrior": "इनाम",
       "waitingRecycler": "रीसाइक्लर के स्वीकार करने की प्रतीक्षा है...", "deliverTo": "स्वीकृत! कृपया यहां पहुंचाएं:", "call": "कॉल करें",
       "tabLive": "लाइव लॉट", "tabBuys": "मेरी खरीदारी", "tabPrices": "मूल्य बोर्ड", "liveRequests": "आपके आस-पास लाइव लॉट", "noRequests": "कोई लंबित लॉट नहीं।", "decline": "अस्वीकार करें", "accept": "लॉट स्वीकार करें", "activeRoute": "सक्रिय हैंडओवर", "markBought": "खरीदा हुआ चिह्नित करें",
       "statFormalized": "औपचारिक ई-कचरा", "statCollectors": "पंजीकृत संग्रहकर्ता", "statPending": "लंबित ट्रैसेबिलिटी", "statValue": "वितरित मूल्य", "chartTitle": "साप्ताहिक ईपीआर श्रेणी ट्रैकिंग", "logsTitle": "लाइव सत्यापन लॉग", "mapTitle": "लाइव रीसाइक्लर फ्लीट रूटिंग",
       "paymentMethod": "भुगतान विधि", "cash": "नकद", "upi": "यूपीआई", "upiIdPlaceholder": "यूपीआई आईडी दर्ज करें", "selectRecyclers": "रीसाइक्लर चुनें", "selectAll": "सभी चुनें", "findNearest": "निकटतम खोजें (GPS)", "markDelivered": "डिलीवर के रूप में चिह्नित करें", "paymentPref": "भुगतान:",
-      "cancelRequest": "अनुरोध रद्द करें", "workingHours": "काम करने का समय"
+      "cancelRequest": "अनुरोध रद्द करें", "workingHours": "काम करने का समय",
+      "ecoTitle": "इको-वॉरियर डैशबोर्ड", "lifetimeImpact": "आजीवन प्रभाव", "co2Prevented": "CO₂ रोका गया", "leaderboard": "शहर लीडरबोर्ड", "unlockCertificate": "आधिकारिक ईपीआर प्रमाणपत्र", "certLocked": "3000 पीटी पर अनलॉक करें", "viewCert": "प्रमाणपत्र देखें", "rank": "रैंक", "points": "अंक"
     }
   },
   bn: {
@@ -63,12 +65,13 @@ const resources = {
       "safetyWarningFull": "নিরাপত্তা সতর্কতা: তার পোড়াবেন না বা ব্যাটারি ভাঙবেন না। আপনার স্বাস্থ্য রক্ষায় এগুলি নিরাপদে অনুমোদিত রিসাইক্লারদের কাছে দিন।",
       "bookPickup": "ই-বর্জ্য লগ করুন", "selectScrap": "মূল্য অনুমান করতে সামগ্রী নির্বাচন করুন", "estWeight": "আনুমানিক ওজন (কেজি)", "totalValue": "মোট মূল্য:", "nextStep": "পরবর্তী ধাপ", "selectScrapBtn": "সামগ্রী নির্বাচন করুন",
       "personalDetails": "লটের বিবরণ", "fullName": "নাম", "mobileNumber": "ফোন নম্বর", "addPhoto": "ছবি আপলোড করুন", "btnCamera": "ক্যামেরা", "btnGallery": "গ্যালারি", "schedulePickup": "লট জমা দিন", "fillDetailsBtn": "বিবরণ এবং ছবি দিন", 
-      "tabNew": "নতুন লট", "tabPending": "অপেক্ষমাণ", "tabSells": "আমার বিক্রি", "tabDirectory": "রিসাইক্লার", "tabRecyclerPending": "অপেক্ষমাণ",
+      "tabNew": "নতুন লট", "tabPending": "অপেক্ষমাণ", "tabSells": "আমার বিক্রি", "tabDirectory": "রিসাইক্লার", "tabRecyclerPending": "অপেক্ষমাণ", "tabEcoWarrior": "পুরস্কার",
       "waitingRecycler": "রিসাইক্লারের অনুমোদনের অপেক্ষায়...", "deliverTo": "গৃহীত! অনুগ্রহ করে এখানে ডেলিভারি দিন:", "call": "কল করুন",
       "tabLive": "লাইভ লট", "tabBuys": "আমার কেনাকাটা", "tabPrices": "মূল্য বোর্ড", "liveRequests": "আপনার কাছাকাছি লাইভ লট", "noRequests": "কোনো পেন্ডিং লট নেই।", "decline": "প্রত্যাখ্যান করুন", "accept": "লট গ্রহণ করুন", "activeRoute": "সক্রিয় হ্যান্ডওভার", "markBought": "কেনা হয়েছে হিসেবে মার্ক করুন",
       "statFormalized": "আনুষ্ঠানিক ই-বর্জ্য", "statCollectors": "নিবন্ধিত সংগ্রাহক", "statPending": "পেন্ডিং ট্রেসেবিলিটি", "statValue": "বিতরণকৃত মূল্য", "chartTitle": "সাপ্তাহিক ইপিআর ট্র্যাকিং", "logsTitle": "লাইভ ভেরিফিকেশন লগ", "mapTitle": "লাইভ রিসাইক্লার ফ্লিট রুটিং",
       "paymentMethod": "পেমেন্ট পদ্ধতি", "cash": "নগদ", "upi": "ইউপিআই", "upiIdPlaceholder": "ইউপিআই আইডি লিখুন", "selectRecyclers": "রিসাইক্লার নির্বাচন করুন", "selectAll": "সব নির্বাচন করুন", "findNearest": "নিকটতম খুঁজুন (GPS)", "markDelivered": "ডেলিভারি সম্পন্ন মার্ক করুন", "paymentPref": "পেমেন্ট:",
-      "cancelRequest": "অনুরोध বাতিল করুন", "workingHours": "কাজের সময়"
+      "cancelRequest": "অনুরोध বাতিল করুন", "workingHours": "কাজের সময়",
+      "ecoTitle": "ইকো-যোদ্ধা ড্যাশবোর্ড", "lifetimeImpact": "আজীবন প্রভাব", "co2Prevented": "CO₂ প্রতিরোধ করা হয়েছে", "leaderboard": "শহর লিডারবোর্ড", "unlockCertificate": "অফিসিয়াল ইপিআর শংসাপত্র", "certLocked": "৩০০০ পয়েন্টে আনলক করুন", "viewCert": "শংসাপত্র দেখুন", "rank": "র‍্যাঙ্ক", "points": "পয়েন্ট"
     }
   },
   mr: {
@@ -85,13 +88,14 @@ const resources = {
       "cat_nonBiodegradable": "प्लास्टिक", "cat_specialized": "ई-कचरा साहित्य",
       "safetyWarningFull": "सुरक्षा चेतावणी: केबल्स जाळू नका किंवा बॅटरी फोडू नका. तुमच्या आरोग्याचे रक्षण करण्यासाठी ते अधिकृत रिसायकलर्सकडे सुरक्षितपणे सोपवा.",
       "bookPickup": "ई-कचरा नोंदवा", "selectScrap": "किंमतीचा अंदाज घेण्यासाठी साहित्य निवडा", "estWeight": "अंदाजित वजन (किलो)", "totalValue": "एकूण मूल्य:", "nextStep": "पुढील पायरी", "selectScrapBtn": "साहित्य निवडा",
-      "personalDetails": "लॉट तपशील", "fullName": "नाव", "mobileNumber": "फोन नंबर", "addPhoto": "फोटो अपलोड करा", "btnCamera": "कॅमेरा", "btnGallery": "गॅलरी", "schedulePickup": "लॉट सबमिट करा", "fillDetailsBtn": "तपशील आणि फोटो भरा", 
-      "tabNew": "नवीन लॉट", "tabPending": "प्रलंबित", "tabSells": "माझी विक्री", "tabDirectory": "रिसायकलर्स", "tabRecyclerPending": "प्रलंबित",
+      "personalDetails": "लॉट तपशील", "fullName": "नाव", "mobileNumber": "फोन नंबर", "addPhoto": "फोटो अपलोड करा", "btnCamera": "कॅमेरा", "btnGallery": "गैलरी", "schedulePickup": "लॉट सबमिट करा", "fillDetailsBtn": "तपशील आणि फोटो भरा", 
+      "tabNew": "नवीन लॉट", "tabPending": "प्रलंबित", "tabSells": "माझी विक्री", "tabDirectory": "रिसायकलर्स", "tabRecyclerPending": "प्रलंबित", "tabEcoWarrior": "बक्षिसे",
       "waitingRecycler": "रिसायकलरच्या मान्यतेची वाट पाहत आहे...", "deliverTo": "स्वीकारले! कृपया येथे वितरित करा:", "call": "कॉल करा",
       "tabLive": "थेट लॉट", "tabBuys": "माझी खरेदी", "tabPrices": "किंमत बोर्ड", "liveRequests": "तुमच्या जवळील लाईव्ह लॉट्स", "noRequests": "कोणतेही प्रलंबित लॉट्स नाहीत.", "decline": "नकार द्या", "accept": "लॉट स्वीकारा", "activeRoute": "सक्रिय हस्तांतरण", "markBought": "खरेदी केल्याचे चिन्हांकित करा",
       "statFormalized": "औपचारिक ई-कचरा", "statCollectors": "नोंदणीकृत संकलक", "statPending": "प्रलंबित ट्रेसेबिलिटी", "statValue": "वितरीत मूल्य", "chartTitle": "साप्ताहिक ईपीआर ट्रॅकिंग", "logsTitle": "थेट पडताळणी नोंदी", "mapTitle": "थेट रिसायकलर फ्लीट राउटिंग",
       "paymentMethod": "पेमेंट पद्धत", "cash": "रोख", "upi": "यूपीआय", "upiIdPlaceholder": "यूपीआय आयडी प्रविष्ट करा", "selectRecyclers": "रिसायकलर निवडा", "selectAll": "सर्व निवडा", "findNearest": "जवळचे शोधा (GPS)", "markDelivered": "वितरित म्हणून चिन्हांकित करा", "paymentPref": "पेमेंट:",
-      "cancelRequest": "विनंती रद्द करा", "workingHours": "कामाचे तास"
+      "cancelRequest": "विनंती रद्द करा", "workingHours": "कामाचे तास",
+      "ecoTitle": "इको-वॉरियर डॅशबोर्ड", "lifetimeImpact": "आजीवन प्रभाव", "co2Prevented": "CO₂ प्रतिबंधित", "leaderboard": "शहर लीडरबोर्ड", "unlockCertificate": "अधिकृत ईपीआर प्रमाणपत्र", "certLocked": "3000 पॉइंट्सवर अनलॉक करा", "viewCert": "प्रमाणपत्र पहा", "rank": "रँक", "points": "पॉइंट्स"
     }
   }
 };
